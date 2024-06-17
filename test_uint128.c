@@ -42,8 +42,9 @@ int main(int argc, char** argv) {
     *       Test the print function.
     */
     uint128_t uint128;
-    unsigned long parts[NUM_OF_PARTS];
+    unsigned long parts[NUM_OF_PARTS], outputPart;
     int i;
+
 
     for( i = 0; i < NUM_OF_PARTS; i++ )
         parts[i] = 0UL - (i % 2);
@@ -55,7 +56,10 @@ int main(int argc, char** argv) {
     /* Test creation of 128 bit unsigned int */
     uint128 = CREATE_UINT128();
 
+
     printf("uint128 is created. Data given address: %p\n", (void *) uint128.data);
+    for( i = 0; i < 128 / 8; i++ )
+        printf("\tByte %i: %p\n", i, (void *) (uint128.data + i));
 
     printf("The bits of the parts (before uint128 conversion):\n");
     for( i = 0; i < NUM_OF_PARTS; i++ ) {
@@ -64,11 +68,26 @@ int main(int argc, char** argv) {
     }
     printf("\n\n");
 
+    printf("Writing parts to uint128...\n");
     if( WRITE_TO_UINT128(uint128, parts, NUM_OF_PARTS) ) {
         printf("ERROR: Failed to write to UINT128.\n");
         return 1;
     }
-    PRINT_UINT128(uint128);
+
+    /* Iterate through uint128 and output each bit: */
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
+        /*
+         * TODO:
+         *      - Split the data address into unsigned long segments.
+         *      - Output the bytes of each segment.
+         */
+        printf("Shifting %lu bytes, unsigned long created from adress %p\n", i * sizeof(unsigned long), (void *) (uint128.data + (i * sizeof(unsigned long))));
+        outputPart = *((unsigned long *) uint128.data + (i * sizeof(unsigned long)));
+        ULtoBits(outputPart);
+        printf("\nNext Part...\n");
+    }
+
+    /*     PRINT_UINT128(uint128); */
 
     printf("Freeing Struct...\n");
     FREE_UINT128(uint128);
