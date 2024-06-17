@@ -1,0 +1,7 @@
+*
+!*.*
+!*/
+*.exe
+*.dSYM/*
+*.o
+c89Playground.c
