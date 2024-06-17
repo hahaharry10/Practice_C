@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 
     printf("uint128 is created. Data given address: %p\n", (void *) uint128.data);
     for( i = 0; i < 128 / 8; i++ )
-        printf("\tByte %i: %p\n", i, (void *) (uint128.data + i));
+        printf("\tByte %i: %p\n", i, (void *) ((char *) uint128.data + i));
 
     printf("The bits of the parts (before uint128 conversion):\n");
     for( i = 0; i < NUM_OF_PARTS; i++ ) {
