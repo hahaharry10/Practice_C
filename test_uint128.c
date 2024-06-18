@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 
 
     for( i = 0; i < NUM_OF_PARTS; i++ )
-        parts[i] = 0UL - (i % 2);
+        parts[i] = (unsigned long) (i*2) + 1;
 
     printf("%lu parts:\n", NUM_OF_PARTS);
     for( i = 0; i < NUM_OF_PARTS; i++ )
@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
          *      - Split the data address into unsigned long segments.
          *      - Output the bytes of each segment.
          */
-        printf("Shifting %lu bytes, unsigned long created from adress %p\n", i * sizeof(unsigned long), (void *) (uint128.data + (i * sizeof(unsigned long))));
-        outputPart = *((unsigned long *) uint128.data + (i * sizeof(unsigned long)));
+        printf("Shifting %lu bytes, unsigned long created from adress %p\n", i * sizeof(unsigned long),  (void *) ((char *) uint128.data + (i * sizeof(unsigned long))));
+        outputPart = *((unsigned long *) (uint128.data + i));
         ULtoBits(outputPart);
         printf("\nNext Part...\n");
     }
