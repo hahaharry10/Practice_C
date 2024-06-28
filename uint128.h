@@ -11,6 +11,9 @@
 /* define how many unsigned long integers are needed to create 128 bit integer */
 #define NUM_OF_PARTS 16/sizeof(unsigned long)
 
+#define NUM_OF_BITS 128
+#define SIZE_OF_DECIMAL_STRING 40
+
 typedef struct {
 		unsigned long* data;
 } uint128_t;
