@@ -1,6 +1,7 @@
 #include "uint128.h"
-#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void ULtoBits( unsigned long x ) {
     unsigned long remainder, bit;
@@ -34,6 +35,52 @@ void ULtoBits( unsigned long x ) {
     free(bits);
 }
 
+void testUint128DecimalOutput(void) {
+    /*
+     * TODO:
+     *      1) Correctly create an array of expected outputs.
+     *      2) create an array of parts to copy into uint128.
+     *      3) Compare output to expected output.
+     */
+    int i, j, numOfTests;
+    uint128_t uint128;
+    char** expectedOutput;
+    unsigned long **parts;
+
+    numOfTests = 4;
+
+    expectedOutput = (char **) calloc(numOfTests, sizeof(char *));
+    parts = (unsigned long **) calloc(numOfTests, sizeof(unsigned long *));
+    for( i = 0; i < numOfTests; i++ ) {
+        expectedOutput[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
+        parts[i] = (unsigned long *) calloc(NUM_OF_PARTS, sizeof(unsigned long));
+    }
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
+        parts[0][i] = 0x0UL - 1;
+        parts[1][i] = 0x0UL;
+        for( j = 0; j < sizeof(unsigned long); j++ )
+            *((char *) parts[2] + j) = 0x55;
+        if( i == NUM_OF_PARTS-1 ) parts[3][i] = 0x2DUL;
+        else parts[3][i] = 0UL;
+    }
+    strcpy(expectedOutput[0], "340282366920938463463374607431768211455\0");
+    strcpy(expectedOutput[1], "0\0");
+    strcpy(expectedOutput[2], "226854911280625642308916404954512140970\0");
+    strcpy(expectedOutput[3], "45\0");
+
+    uint128 = CREATE_UINT128();
+
+    /* Iterate through tests: */
+    for( i = 0; i < numOfTests; i++ ) {
+        WRITE_TO_UINT128(uint128, parts[i], NUM_OF_PARTS);
+        printf("Test %i:\n", i);
+        printf("\tExpected Output:\n\t\t%s\n", expectedOutput[i]);
+        printf("\tActual Output:\n\t\t");
+        PRINT_UINT128_AS_DECIMAL(uint128);
+        printf("\n");
+    }
+    FREE_UINT128(uint128);
+}
 int main(int argc, char** argv) {
     /*  
     *  TODO:
@@ -45,6 +92,8 @@ int main(int argc, char** argv) {
     unsigned long parts[NUM_OF_PARTS], outputPart;
     int i;
 
+    printf("This API uses the following endianness:\n\t");
+    ENDIANNESS;
 
     for( i = 0; i < NUM_OF_PARTS; i++ )
         parts[i] = (unsigned long) (i*2) + 1;
@@ -73,6 +122,8 @@ int main(int argc, char** argv) {
         printf("ERROR: Failed to write to UINT128.\n");
         return 1;
     }
+
+    testUint128DecimalOutput();
 
     /* Iterate through uint128 and output each bit: */
     for( i = 0; i < NUM_OF_PARTS; i++ ) {

@@ -8,6 +8,8 @@
 
 #define INCOMPATIBLE_PART_COUNT_ERROR 3
 
+#define ENDIANNESS printf("Big Endian\n");
+
 /* define how many unsigned long integers are needed to create 128 bit integer */
 #define NUM_OF_PARTS 16/sizeof(unsigned long)
 

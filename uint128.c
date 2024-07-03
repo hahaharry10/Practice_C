@@ -1,4 +1,5 @@
 #include "uint128.h"
+#include <stdio.h>
 
 uint128_t CREATE_UINT128(void) {
     uint128_t uint128;
@@ -133,10 +134,10 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
     binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
     for( i = 0; i < NUM_OF_BITS; i++ ) {
         binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
-        /*
-        * TODO:
-        *   Convert `uint128` into its indvidual bytes and store it in `binary`.
-        */
+        if( (*uint128.data >> i) & 0x01UL )
+            _strcpy(binary[i], "1\0", 2);
+        else
+            _strcpy(binary[i], "0\0", 2);
     }
 
     for( i = 0; i < NUM_OF_BITS; i++ ) 
