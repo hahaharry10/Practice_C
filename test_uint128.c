@@ -93,7 +93,6 @@ int main(int argc, char** argv) {
     int i;
 
     printf("This API uses the following endianness:\n\t");
-    ENDIANNESS;
 
     for( i = 0; i < NUM_OF_PARTS; i++ )
         parts[i] = (unsigned long) (i*2) + 1;

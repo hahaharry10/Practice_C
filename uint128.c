@@ -3,7 +3,10 @@
 
 uint128_t CREATE_UINT128(void) {
     uint128_t uint128;
+    int n;
     uint128.data = ((unsigned long *) malloc(NUM_OF_PARTS * sizeof(unsigned long))) + ( (NUM_OF_PARTS - 1) * sizeof(unsigned int) );
+    n = 1;
+    uint128.endianness = (int) *((char *) &n);
     return uint128;
 }
 
@@ -129,16 +132,37 @@ void addDecimalBits(char* bit1, char* bit2) {
 }
 
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
-    int i, j;
+    /*
+    * TODO:
+    *   Change algorithm to adapt to the endianness.
+    */
+    int i, j, offset;
     char** binary;
     binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
-    for( i = 0; i < NUM_OF_BITS; i++ ) {
+
+    /* Copy in Little Endian format */
+    /* for( i = 0; i < NUM_OF_PARTS; i++ ) {
         binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
         if( (*uint128.data >> i) & 0x01UL )
             _strcpy(binary[i], "1\0", 2);
         else
             _strcpy(binary[i], "0\0", 2);
+    } */
+
+    for( i = 0; i < NUM_OF_BITS; i++ )
+        binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
+
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
+        for( j = 0; j < sizeof(unsigned long)*8; j++ ) {
+            if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
+                _strcpy(binary[((i+1)*sizeof(unsigned long)*8)-j-1], "1\0", 2);
+            else
+                _strcpy(binary[((i+1)*sizeof(unsigned long)*8)-j-1], "0\0", 2);
+         }
     }
+
+    /* for( i = 0; i < NUM_OF_BITS; i++ )
+        printf("\t%i: %s\n", i, binary[i]); */
 
     for( i = 0; i < NUM_OF_BITS; i++ ) 
         for( j = i; j < NUM_OF_BITS-1; j++ )

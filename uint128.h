@@ -8,7 +8,8 @@
 
 #define INCOMPATIBLE_PART_COUNT_ERROR 3
 
-#define ENDIANNESS printf("Big Endian\n");
+#define SYSTEM_BIG_ENDIAN 0
+#define SYSTEM_LITTLE_ENDIANNE 1
 
 /* define how many unsigned long integers are needed to create 128 bit integer */
 #define NUM_OF_PARTS 16/sizeof(unsigned long)
@@ -18,6 +19,7 @@
 
 typedef struct {
 		unsigned long* data;
+		int endianness;
 } uint128_t;
 
 uint128_t CREATE_UINT128(void);
