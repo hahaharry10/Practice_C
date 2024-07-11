@@ -59,7 +59,7 @@ void testUint128DecimalOutput(void) {
         parts[0][i] = 0x0UL - 1;
         parts[1][i] = 0x0UL;
         for( j = 0; j < sizeof(unsigned long); j++ )
-            *((char *) parts[2] + j) = 0x55;
+            *((char *) (parts[2] + i) + j) = 0x55;
         if( i == NUM_OF_PARTS-1 ) parts[3][i] = 0x2DUL;
         else parts[3][i] = 0UL;
     }

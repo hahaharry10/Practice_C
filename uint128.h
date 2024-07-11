@@ -18,8 +18,9 @@
 #define SIZE_OF_DECIMAL_STRING 40
 
 typedef struct {
-		unsigned long* data;
-		int endianness;
+	unsigned long* data;
+	int byte_endianness;
+	int bit_endianness;
 } uint128_t;
 
 uint128_t CREATE_UINT128(void);
