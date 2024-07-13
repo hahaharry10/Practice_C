@@ -47,7 +47,7 @@ void testUint128DecimalOutput(void) {
     char** expectedOutput;
     unsigned long **parts;
 
-    numOfTests = 4;
+    numOfTests = 5;
 
     expectedOutput = (char **) calloc(numOfTests, sizeof(char *));
     parts = (unsigned long **) calloc(numOfTests, sizeof(unsigned long *));
@@ -62,11 +62,14 @@ void testUint128DecimalOutput(void) {
             *((char *) (parts[2] + i) + j) = 0x55;
         if( i == NUM_OF_PARTS-1 ) parts[3][i] = 0x2DUL;
         else parts[3][i] = 0UL;
+        if( i == 0 ) parts[4][i] = 0x2DUL;
+        else parts[4][i] = 0UL;
     }
     strcpy(expectedOutput[0], "340282366920938463463374607431768211455\0");
     strcpy(expectedOutput[1], "0\0");
     strcpy(expectedOutput[2], "113427455640312821154458202477256070485\0");
     strcpy(expectedOutput[3], "45\0");
+    strcpy(expectedOutput[4], "830103483316929822720\0");
 
     uint128 = CREATE_UINT128();
 
