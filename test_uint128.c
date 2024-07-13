@@ -1,4 +1,5 @@
 #include "uint128.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,24 +36,63 @@ void ULtoBits( unsigned long x ) {
     free(bits);
 }
 
-void testUint128DecimalOutput(void) {
+void testDiffEndianness(uint128_t uint128, char** expectedOutput) {
     /*
      * TODO:
-     *      1) Correctly create an array of expected outputs.
-     *      2) create an array of parts to copy into uint128.
-     *      3) Compare output to expected output.
+     *  Test the output for all endian combinations.
      */
-    int i, j, numOfTests;
+
+    uint128.byte_endianness = SYSTEM_LITTLE_ENDIAN;
+    uint128.bit_endianness = SYSTEM_LITTLE_ENDIAN;
+    printf("\tByte=LITTLE, Bit=LITTLE\n");
+    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[0]);
+    printf("\t\tActual Output:\n\t\t\t");
+    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\n\n");
+
+
+    uint128.bit_endianness = SYSTEM_BIG_ENDIAN;
+    printf("\tByte=LITTLE, Bit=BIG\n");
+    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[1]);
+    printf("\t\tActual Output:\n\t\t\t");
+    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\n\n");
+
+    uint128.byte_endianness = SYSTEM_BIG_ENDIAN;
+    uint128.bit_endianness = SYSTEM_LITTLE_ENDIAN;
+    printf("\tByte=BIG, Bit=LITTLE\n");
+    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[2]);
+    printf("\t\tActual Output:\n\t\t\t");
+    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\n\n");
+
+    uint128.bit_endianness = SYSTEM_BIG_ENDIAN;
+    printf("\tByte=BIG, Bit=BIG\n");
+    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[3]);
+    printf("\t\tActual Output:\n\t\t\t");
+    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\n\n");
+}
+
+void testUint128DecimalOutput(void) {
+    uint8_t i, j, numOfTests, numOfSubTests;
     uint128_t uint128;
-    char** expectedOutput;
+    char*** expectedOutput;
     unsigned long **parts;
 
     numOfTests = 5;
+    numOfSubTests = 4;
 
-    expectedOutput = (char **) calloc(numOfTests, sizeof(char *));
+    /*
+     * TODO:
+     *  Change the expected output to be a 3D array, where each element is an array of charStrings that show the expected output of the values for the endianness.
+     */
+    expectedOutput = (char ***) calloc(numOfTests, sizeof(char **));
     parts = (unsigned long **) calloc(numOfTests, sizeof(unsigned long *));
     for( i = 0; i < numOfTests; i++ ) {
-        expectedOutput[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
+        expectedOutput[i] = (char **) malloc(SIZE_OF_DECIMAL_STRING);
+        for( j = 0; j < numOfSubTests; j++ )
+            expectedOutput[i][j] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
         parts[i] = (unsigned long *) calloc(NUM_OF_PARTS, sizeof(unsigned long));
     }
     for( i = 0; i < NUM_OF_PARTS; i++ ) {
@@ -65,11 +105,31 @@ void testUint128DecimalOutput(void) {
         if( i == 0 ) parts[4][i] = 0x2DUL;
         else parts[4][i] = 0UL;
     }
-    strcpy(expectedOutput[0], "340282366920938463463374607431768211455\0");
-    strcpy(expectedOutput[1], "0\0");
-    strcpy(expectedOutput[2], "113427455640312821154458202477256070485\0");
-    strcpy(expectedOutput[3], "45\0");
-    strcpy(expectedOutput[4], "830103483316929822720\0");
+    /* Order of Tests:
+     *      sub Test:   Byte Endianness:    Bit Endianness:
+     *          1           LITTLE              LITTLE
+     *          2           LITTLE               BIG
+     *          3            BIG                LITTLE
+     *          4            BIG                 BIG
+     */
+    for( i = 0; i < numOfSubTests; i++ ) {
+        strcpy(expectedOutput[0][i], "340282366920938463463374607431768211455\0");
+        strcpy(expectedOutput[1][i], "0\0");
+    }
+    strcpy(expectedOutput[2][0], "226854911280625642308916404954512140970\0");
+    strcpy(expectedOutput[2][1], "113427455640312821154458202477256070485\0");
+    strcpy(expectedOutput[2][2], "226854911280625642308916404954512140970\0");
+    strcpy(expectedOutput[2][3], "113427455640312821154458202477256070485\0");
+
+    strcpy(expectedOutput[3][0], "180\0");
+    strcpy(expectedOutput[3][1], "45\0");
+    strcpy(expectedOutput[3][2], "12970366926827028480\0");
+    strcpy(expectedOutput[3][3], "3242591731706757120\0");
+
+    strcpy(expectedOutput[4][0], "3320413933267719290880\0");
+    strcpy(expectedOutput[4][1], "830103483316929822720\0");
+    strcpy(expectedOutput[4][2], "239261039241284857122685270850462023680\0");
+    strcpy(expectedOutput[4][3], "59815259810321214280671317712615505920\0");
 
     uint128 = CREATE_UINT128();
 
@@ -77,9 +137,7 @@ void testUint128DecimalOutput(void) {
     for( i = 0; i < numOfTests; i++ ) {
         WRITE_TO_UINT128(uint128, parts[i], NUM_OF_PARTS);
         printf("Test %i:\n", i);
-        printf("\tExpected Output:\n\t\t%s\n", expectedOutput[i]);
-        printf("\tActual Output:\n\t\t");
-        PRINT_UINT128_AS_DECIMAL(uint128);
+        testDiffEndianness(uint128, expectedOutput[i]);
         printf("\n");
     }
     FREE_UINT128(uint128);
