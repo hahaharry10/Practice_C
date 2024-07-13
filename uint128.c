@@ -22,15 +22,9 @@ int WRITE_TO_UINT128(uint128_t uint128, unsigned long* parts, int numOfParts) {
     if( numOfParts != NUM_OF_PARTS )
         return INCOMPATIBLE_PART_COUNT_ERROR;
 
-    /*
-        * TODO:
-        *       Iterate through each part and use bitwise OR to assign to uint128
-    */
     for( i = numOfParts-1; i >= 0; i-- ) {
         u128_part = (unsigned long *) uint128.data + i;
-/*         printf("parts[%i] ^ 0UL = %lu ^ %lu = %lu\n", i, parts[i], 0UL, parts[i] ^ 0UL); */
         *u128_part = (unsigned long) parts[i] ^ 0UL;
-/*         printf("\t%lu\n", *u128_part); */
     }
 
     return EXIT_SUCCESS;
@@ -132,80 +126,65 @@ void addDecimalBits(char* bit1, char* bit2) {
     }
 }
 
-/* void getBit(void) {
-    if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
-        _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "1\0", 2);
-    else
-        _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "0\0", 2);
-
-    return (((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL) ? "1\0" : "0\0");
-} */
-
-
 /* 
  * Convert the bits stored in the 128bit integer into an array of bits represented as strings. 
  * The Bits are stored in a bit string in big endian format on both the bit level and the byte level.
  */
 void getBits(uint128_t uint128, char** bitString) {
-    /*
-     * TODO:
-     *      Conditions needed to be implemented:
-     *          1) Little Endian on both byte and bit level.
-     *          2) Little Endian on byte level, Big Endian on bit level.
-     *          3) Big Endian on both byte and bit level.
-     *          4) Big Endian on byte level, Little Endian on bit level.
-     *      
-     *      If Endianness is not the same on the bit and byte level, then bits must be received
-     *      on a byte level.
-     */
-
-    int i, j, count;
+    int i, j, p, count;
     char byte;
 
     count = 0;
     if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIANNE && uint128.bit_endianness == SYSTEM_LITTLE_ENDIANNE ) { /* Copy bytes in reversed order in which they are stored in */
-        for( i = 15; i >= 0; i-- )
-            for( j = 0; j < 8; j++ ) {
-                byte = *( (char *) uint128.data + i );
-                _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-            }
+        for( p = 0; p < NUM_OF_PARTS; p++ ) {
+            for( i = sizeof(unsigned long)-1; i >= 0; i-- )
+                for( j = 0; j < 8; j++ ) {
+                    byte = *( (char *) (uint128.data + p) + i );
+                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+                }
+        }
     }
     else if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIANNE && uint128.bit_endianness == SYSTEM_BIG_ENDIAN ) { /* Copy bytes in reverse order and copy the bits in each byte in reverse order */
-        for( i = 15; i >= 0; i-- )
-            for( j = 0; j < 8; j++ ) {
-                byte = *( (char *) uint128.data + i );
-                _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-                count++;
-            }
+        for( p = 0; p < NUM_OF_PARTS; p++ ) {
+            for( i = sizeof(unsigned long)-1; i >= 0; i-- )
+                for( j = 7; j >= 0; j-- ) {
+/*                     byte = *( (char *) uint128.data + i ); */
+                    byte = *( (char *) (uint128.data + p) + i );
+                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+                    count++;
+                }
+        }
     }
     else if( uint128.byte_endianness == SYSTEM_BIG_ENDIAN && uint128.bit_endianness == SYSTEM_BIG_ENDIAN ) { /* Copy bytes in order they are stored in */
-        for( i = 0; i < 16; i++ )
-            for( j = 7; j >= 0; j-- ) {
-                /* if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
+        for( p = 0; p < NUM_OF_PARTS; p++ ) {
+            for( i = 0; i < sizeof(unsigned long)-1; i++ )
+                for( j = 7; j >= 0; j-- ) {
+                    /* if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
                     _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "1\0", 2);
                 else
                     _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "0\0", 2); */
-                byte = *( (char *) uint128.data + i );
-                _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-                count++;
-            }
+/*                     byte = *( (char *) uint128.data + i ); */
+                    byte = *( (char *) (uint128.data + p) + i );
+                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+                    count++;
+                }
+        }
     }
     else { /* Copy Bytes in order that they are stored but reverse the order of each byte */
-        for( i = 0; i < 16; i++ ) {
-            for( j = 0; j < 8; j++ ) {
-                byte = *( (char *) uint128.data + i );
-                _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-                count++;
+        for( p = 0; p < NUM_OF_PARTS; p++ ) {
+            for( i = 0; i < sizeof(unsigned long); i++ ) {
+                for( j = 0; j < 8; j++ ) {
+/*                     byte = *( (char *) uint128.data + i ); */
+                    byte = *( (char *) (uint128.data + p) + i );
+                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+                    count++;
+                }
             }
         }
     }
 }
 
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
-    /*
-    * TODO:
-    *   Change algorithm to adapt to the endianness.
-    */
     int i, j, offset;
     char** binary;
     binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
@@ -213,17 +192,12 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
     for( i = 0; i < NUM_OF_BITS; i++ )
         binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
 
-    /* for( i = 0; i < NUM_OF_PARTS; i++ ) {
-        for( j = 0; j < sizeof(unsigned long)*8; j++ ) {
-            _strcpy(binary[((i+1)*sizeof(unsigned long)*8)-j-1], (((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL) ? "1\0" : "0\0"), 2);
-         }
-    } */
     getBits(uint128, binary);
 
-    printf("\t");
+    /* printf("\t");
     for( i = 0; i < NUM_OF_BITS; i++ )
         printf("%s", binary[i]);
-    printf("\n");
+    printf("\n"); */
 
     for( i = 0; i < NUM_OF_BITS; i++ ) 
         for( j = i; j < NUM_OF_BITS-1; j++ )
