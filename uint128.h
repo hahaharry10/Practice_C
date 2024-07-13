@@ -9,7 +9,7 @@
 #define INCOMPATIBLE_PART_COUNT_ERROR 3
 
 #define SYSTEM_BIG_ENDIAN 0
-#define SYSTEM_LITTLE_ENDIANNE 1
+#define SYSTEM_LITTLE_ENDIAN 1
 
 /* define how many unsigned long integers are needed to create 128 bit integer */
 #define NUM_OF_PARTS 16/sizeof(unsigned long)
