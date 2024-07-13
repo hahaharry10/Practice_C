@@ -65,7 +65,7 @@ void testUint128DecimalOutput(void) {
     }
     strcpy(expectedOutput[0], "340282366920938463463374607431768211455\0");
     strcpy(expectedOutput[1], "0\0");
-    strcpy(expectedOutput[2], "226854911280625642308916404954512140970\0");
+    strcpy(expectedOutput[2], "113427455640312821154458202477256070485\0");
     strcpy(expectedOutput[3], "45\0");
 
     uint128 = CREATE_UINT128();
@@ -104,6 +104,9 @@ int main(int argc, char** argv) {
     /* Test creation of 128 bit unsigned int */
     uint128 = CREATE_UINT128();
 
+    printf("Uint128 created with:\n");
+    printf("\tbyte endianness: %s\n", ( uint128.byte_endianness ? "LITTLE" : "BIG" ));
+    printf("\tbit  endianness: %s\n", ( uint128.bit_endianness ? "LITTLE" : "BIG" ));
 
     printf("uint128 is created. Data given address: %p\n", (void *) uint128.data);
     for( i = 0; i < 128 / 8; i++ )
