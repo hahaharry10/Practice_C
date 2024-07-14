@@ -50,7 +50,6 @@ void testDiffEndianness(uint128_t uint128, char** expectedOutput) {
     PRINT_UINT128_AS_DECIMAL(uint128);
     printf("\n\n");
 
-
     uint128.bit_endianness = SYSTEM_BIG_ENDIAN;
     printf("\tByte=LITTLE, Bit=BIG\n");
     printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[1]);

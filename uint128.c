@@ -141,6 +141,7 @@ void getBits(uint128_t uint128, char** bitString) {
                 for( j = 0; j < 8; j++ ) {
                     byte = *( (char *) (uint128.data + p) + i );
                     _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+                    count++;
                 }
         }
     }
@@ -157,7 +158,7 @@ void getBits(uint128_t uint128, char** bitString) {
     }
     else if( uint128.byte_endianness == SYSTEM_BIG_ENDIAN && uint128.bit_endianness == SYSTEM_BIG_ENDIAN ) { /* Copy bytes in order they are stored in */
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
-            for( i = 0; i < sizeof(unsigned long)-1; i++ )
+            for( i = 0; i < sizeof(unsigned long); i++ )
                 for( j = 7; j >= 0; j-- ) {
                     /* if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
                     _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "1\0", 2);
