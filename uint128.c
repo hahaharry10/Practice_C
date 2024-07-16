@@ -1,5 +1,4 @@
 #include "uint128.h"
-#include <stdio.h>
 
 uint128_t CREATE_UINT128(void) {
     uint128_t uint128;
@@ -185,7 +184,7 @@ void getBits(uint128_t uint128, char** bitString) {
     }
 }
 
-void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
+void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
     int i, j, offset;
     char** binary;
     binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
@@ -195,11 +194,6 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
 
     getBits(uint128, binary);
 
-    /* printf("\t");
-    for( i = 0; i < NUM_OF_BITS; i++ )
-        printf("%s", binary[i]);
-    printf("\n"); */
-
     for( i = 0; i < NUM_OF_BITS; i++ ) 
         for( j = i; j < NUM_OF_BITS-1; j++ )
             doubleDecimal(binary[i]);
@@ -207,7 +201,11 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128) {
     for( i = 1; i < NUM_OF_BITS; i++ )
         addDecimalBits(binary[0], binary[i]);
 
-    printf("%s", binary[0]);
+    for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
+        dest[i] = binary[0][i];
+        if( binary[0][i] == '\0' )
+            break;
+    }
 
     for( i = 0; i < NUM_OF_BITS; i++ )
         free(binary[i]);
