@@ -1,5 +1,4 @@
 #include "uint128.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,56 +35,72 @@ void ULtoBits( unsigned long x ) {
     free(bits);
 }
 
-void testDiffEndianness(uint128_t uint128, char** expectedOutput) {
-    /*
-     * TODO:
-     *  Test the output for all endian combinations.
-     */
+int checkStringsAreIdentical(char* str1, char* str2) {
+    int i;
+
+    for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
+        if( str1[i] != str2[i] )
+            return 0;
+        else if( str1[i] == '\0' || str2[i] == '\0' )
+            return 1;
+    }
+
+    return 1;
+}
+
+void testDiffEndianness(uint128_t uint128, char** expectedOutput, char* decimalOutput) {
+    int i;
 
     uint128.byte_endianness = SYSTEM_LITTLE_ENDIAN;
     uint128.bit_endianness = SYSTEM_LITTLE_ENDIAN;
     printf("\tByte=LITTLE, Bit=LITTLE\n");
-    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[0]);
-    printf("\t\tActual Output:\n\t\t\t");
-    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\t\tExpected Output:\t%s\n", expectedOutput[0]);
+    PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+    printf("\t\tActual Output:  \t%s\n", decimalOutput);
+    if( !checkStringsAreIdentical(expectedOutput[0], decimalOutput) )
+        printf("\033[0;31mFAILED\033[0m\n");
     printf("\n\n");
 
     uint128.bit_endianness = SYSTEM_BIG_ENDIAN;
     printf("\tByte=LITTLE, Bit=BIG\n");
-    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[1]);
-    printf("\t\tActual Output:\n\t\t\t");
-    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\t\tExpected Output:\t%s\n", expectedOutput[1]);
+    PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+    printf("\t\tActual Output:  \t%s\n", decimalOutput);
+    if( !checkStringsAreIdentical(expectedOutput[1], decimalOutput) )
+        printf("\033[0;31mFAILED\033[0m\n");
     printf("\n\n");
 
     uint128.byte_endianness = SYSTEM_BIG_ENDIAN;
     uint128.bit_endianness = SYSTEM_LITTLE_ENDIAN;
     printf("\tByte=BIG, Bit=LITTLE\n");
-    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[2]);
-    printf("\t\tActual Output:\n\t\t\t");
-    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\t\tExpected Output:\t%s\n", expectedOutput[2]);
+    PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+    printf("\t\tActual Output:  \t%s\n", decimalOutput);
+    if( !checkStringsAreIdentical(expectedOutput[2], decimalOutput) )
+        printf("\033[0;31mFAILED\033[0m\n");
     printf("\n\n");
 
     uint128.bit_endianness = SYSTEM_BIG_ENDIAN;
     printf("\tByte=BIG, Bit=BIG\n");
-    printf("\t\tExpected Output:\n\t\t\t%s\n", expectedOutput[3]);
-    printf("\t\tActual Output:\n\t\t\t");
-    PRINT_UINT128_AS_DECIMAL(uint128);
+    printf("\t\tExpected Output:\t%s\n", expectedOutput[3]);
+    PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+    printf("\t\tActual Output:  \t%s\n", decimalOutput);
+    if( !checkStringsAreIdentical(expectedOutput[3], decimalOutput) )
+        printf("\033[0;31mFAILED\033[0m\n");
     printf("\n\n");
 }
 
 void testUint128DecimalOutput(void) {
     uint8_t i, j, numOfTests, numOfSubTests;
     uint128_t uint128;
+    char* decimalOutput;
     char*** expectedOutput;
     unsigned long **parts;
 
     numOfTests = 5;
     numOfSubTests = 4;
 
-    /*
-     * TODO:
-     *  Change the expected output to be a 3D array, where each element is an array of charStrings that show the expected output of the values for the endianness.
-     */
+    decimalOutput = (char *) malloc(SIZE_OF_DECIMAL_STRING);
     expectedOutput = (char ***) calloc(numOfTests, sizeof(char **));
     parts = (unsigned long **) calloc(numOfTests, sizeof(unsigned long *));
     for( i = 0; i < numOfTests; i++ ) {
@@ -136,7 +151,7 @@ void testUint128DecimalOutput(void) {
     for( i = 0; i < numOfTests; i++ ) {
         WRITE_TO_UINT128(uint128, parts[i], NUM_OF_PARTS);
         printf("Test %i:\n", i);
-        testDiffEndianness(uint128, expectedOutput[i]);
+        testDiffEndianness(uint128, expectedOutput[i], decimalOutput);
         printf("\n");
     }
     FREE_UINT128(uint128);
