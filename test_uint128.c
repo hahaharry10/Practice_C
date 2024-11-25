@@ -206,7 +206,7 @@ void testAddition(void) {
     WRITE_TO_UINT128(uint128, parts, 2);
     for( i = 0; i < 0x0UL-1; i++ ) {
         for( j = 0; j < 2; j++ ) {
-            ADD_TO_UINT128(uint128, parts);
+            UINT128_ADD_LONG(uint128, parts[j]);
         }
     }
 

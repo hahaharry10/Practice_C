@@ -25,6 +25,7 @@ typedef struct {
 
 uint128_t CREATE_UINT128(void);
 int WRITE_TO_UINT128(uint128_t uint128, unsigned long* parts, int numOfParts);
-int ADD_TO_UINT128(uint128_t uint128, unsigned long value); /* Add long to 128-bit integer */
+int UINT128_ADD_LONG(uint128_t uint128, unsigned long value); /* Add long to 128-bit integer */
+int UINT128_ADD_UINT128( uint128_t* u1, uint128_t* u2 ); /* Performs the equivalent of `u1 = u1 + u2` (u2 is left untouched) */
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest); /* Output to the terminal as decimal number */
 void FREE_UINT128(uint128_t data); /* Free up the data */

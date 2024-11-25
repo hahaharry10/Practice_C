@@ -215,3 +215,39 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
 void FREE_UINT128(uint128_t data) {
     free(data.data - ( (NUM_OF_PARTS - 1) * sizeof(unsigned int) ));
 }
+
+int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
+    if( uint128->data == NULL ) {
+        return 1;
+    }
+
+    if( (uint128->data[0] += value) < value ) {
+        int i;
+        for( i = 1; i < NUM_OF_PARTS; i++ ) {
+            if( (++uint128->data[i]) != 0 )
+                break;
+        }
+    }
+
+    return 0;
+}
+
+/* Performs the equivalent of `u1 = u1 + u2` (u2 is left untouched) */
+int UINT128_ADD_UINT128( uint128_t* u1, uint128_t* u2 ) {
+    if( u1->data == NULL || u2->data == NULL ) {
+        return 1;
+    } else {
+        int i, j;
+
+        for( i = 0; i < NUM_OF_PARTS; i++ ) {
+            if( (u1->data[i] += u2->data[i]) < u2->data[i] ) {
+                for( j = i+1; j < NUM_OF_PARTS; j++ ) {
+                    if( (++u1->data[j]) != 0 )
+                        break;
+                }
+            }
+        }
+        
+        return 0;
+    }
+}
