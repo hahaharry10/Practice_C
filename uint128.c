@@ -165,7 +165,7 @@ void getBits(uint128_t uint128, char** bitString) {
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
     int i, j, offset;
     char** binary;
-    binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
+    binary = (char **) calloc(NUM_OF_BITS, sizeof(char*));
 
     for( i = 0; i < NUM_OF_BITS; i++ )
         binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
