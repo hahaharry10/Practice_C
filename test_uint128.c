@@ -164,6 +164,7 @@ void testUint128DecimalOutput(void) {
             expectedOutput[i][j] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
         parts[i] = (unsigned long *) calloc(NUM_OF_PARTS, sizeof(unsigned long));
     }
+
     for( i = 0; i < numOfTests; i++ ) {
         for( j = 0; j < numOfSubTests; j++ )
             free(expectedOutput[i][j]);
@@ -206,7 +207,7 @@ void testAddition(void) {
     WRITE_TO_UINT128(uint128, parts, 2);
     for( i = 0; i < 0x0UL-1; i++ ) {
         for( j = 0; j < 2; j++ ) {
-            UINT128_ADD_LONG(uint128, parts[j]);
+            UINT128_ADD_LONG(&uint128, parts[j]);
         }
     }
 
