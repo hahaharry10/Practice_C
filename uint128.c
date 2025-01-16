@@ -130,64 +130,42 @@ void addDecimalBits(char* bit1, char* bit2) {
  * The Bits are stored in a bit string in big endian format on both the bit level and the byte level.
  */
 void getBits(uint128_t uint128, char** bitString) {
-    int i, j, p, count;
+    int B, b, p, count; /* [B]yte, [b]it, [p]art, count */
     char byte;
+    char strByte[2] = "0\0";
 
     count = 0;
-    if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIAN && uint128.bit_endianness == SYSTEM_LITTLE_ENDIAN ) { /* Copy bytes in reversed order in which they are stored in */
+    if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIAN ) {
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
-            for( i = sizeof(unsigned long)-1; i >= 0; i-- )
-                for( j = 0; j < 8; j++ ) {
-                    byte = *( (char *) (uint128.data + p) + i );
-                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+            /* Little Endian: LSB is first */
+            for( B = sizeof(unsigned long)-1; B >= 0; B-- )
+                for( b = 7; b >= 0; b-- ) {
+                    byte = *( (char *) (uint128.data + p) + B );
+                    strByte[0] = '0' + ( (byte >> b) & 0x01 );
+                    _strcpy(bitString[count], strByte, 2);
                     count++;
                 }
         }
-    }
-    else if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIAN && uint128.bit_endianness == SYSTEM_BIG_ENDIAN ) { /* Copy bytes in reverse order and copy the bits in each byte in reverse order */
+    } else {
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
-            for( i = sizeof(unsigned long)-1; i >= 0; i-- )
-                for( j = 7; j >= 0; j-- ) {
-/*                     byte = *( (char *) uint128.data + i ); */
-                    byte = *( (char *) (uint128.data + p) + i );
-                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
+            /* Big Endian: MSB is first */
+            for( B = 0; B < sizeof(unsigned long); B++ )
+                for( b = 7; b >= 0; b-- ) {
+                    byte = *( (char *) (uint128.data + p) + B );
+                    strByte[0] = '0' + ( (byte >> b) & 0x01 );
+                    _strcpy(bitString[count], strByte, 2);
                     count++;
                 }
         }
-    }
-    else if( uint128.byte_endianness == SYSTEM_BIG_ENDIAN && uint128.bit_endianness == SYSTEM_BIG_ENDIAN ) { /* Copy bytes in order they are stored in */
-        for( p = 0; p < NUM_OF_PARTS; p++ ) {
-            for( i = 0; i < sizeof(unsigned long); i++ )
-                for( j = 7; j >= 0; j-- ) {
-                    /* if((*uint128.data >> ( (i*sizeof(unsigned long)*8)+j )) & 0x01UL)
-                    _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "1\0", 2);
-                else
-                    _strcpy(bitString[((i+1)*sizeof(unsigned long)*8)-j-1], "0\0", 2); */
-/*                     byte = *( (char *) uint128.data + i ); */
-                    byte = *( (char *) (uint128.data + p) + i );
-                    _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-                    count++;
-                }
-        }
-    }
-    else { /* Copy Bytes in order that they are stored but reverse the order of each byte */
-        for( p = 0; p < NUM_OF_PARTS; p++ ) {
-            for( i = 0; i < sizeof(unsigned long); i++ ) {
-                for( j = 0; j < 8; j++ ) {
-/*                     byte = *( (char *) uint128.data + i ); */
-                    byte = *( (char *) (uint128.data + p) + i );
-                   _strcpy(bitString[count], ( (byte >> j) & 0x01 ? "1\0" : "0\0" ), 2);
-                    count++;
-                }
-            }
-        }
+
     }
 }
+
 
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
     int i, j, offset;
     char** binary;
-    binary = (char **) calloc(NUM_OF_BITS, sizeof(char));
+    binary = (char **) calloc(NUM_OF_BITS, sizeof(char*));
 
     for( i = 0; i < NUM_OF_BITS; i++ )
         binary[i] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
@@ -214,4 +192,40 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
 
 void FREE_UINT128(uint128_t data) {
     free(data.data - ( (NUM_OF_PARTS - 1) * sizeof(unsigned int) ));
+}
+
+int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
+    if( uint128->data == NULL ) {
+        return 1;
+    }
+
+    if( (uint128->data[0] += value) < value ) {
+        int i;
+        for( i = 1; i < NUM_OF_PARTS; i++ ) {
+            if( (++uint128->data[i]) != 0 )
+                break;
+        }
+    }
+
+    return 0;
+}
+
+/* Performs the equivalent of `u1 = u1 + u2` (u2 is left untouched) */
+int UINT128_ADD_UINT128( uint128_t* u1, uint128_t* u2 ) {
+    if( u1->data == NULL || u2->data == NULL ) {
+        return 1;
+    } else {
+        int i, j;
+
+        for( i = 0; i < NUM_OF_PARTS; i++ ) {
+            if( (u1->data[i] += u2->data[i]) < u2->data[i] ) {
+                for( j = i+1; j < NUM_OF_PARTS; j++ ) {
+                    if( (++u1->data[j]) != 0 )
+                        break;
+                }
+            }
+        }
+        
+        return 0;
+    }
 }
