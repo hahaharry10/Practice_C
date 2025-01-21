@@ -2,6 +2,7 @@
 !*.*
 !*/
 !Makefile
+!build
 *.exe
 *.dSYM/*
 *.o

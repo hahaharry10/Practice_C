@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ $# == 0 ]] then
+    echo "Usage: ./build file_basename"
+else
+    flags="-std=c89 -Werror -Wall -Wextra -pedantic"
+    echo "clang $flags -o $1 $(echo "$1.c")"
+    clang $flags -o $1 "$1.c"
+    echo "clang $flags -S -o $(echo "$1.s") $(echo "$1.c")"
+    clang $flags -S -o "$1.s" "$1.c"
+fi
