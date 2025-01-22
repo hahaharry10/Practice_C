@@ -1,11 +1,86 @@
 #!/bin/bash
 
-if [[ $# == 0 ]] then
-    echo "Usage: ./build file_basename"
-else
+contains () {
+    arr=$1
+    arr_len=$2
+    target=$3
+
+    for (( i = 0; i < $arr_len; i++ )); do
+        if [[ ${arr[i]} == $target ]]; then
+            return 0
+        fi
+    done
+
+    return 1;
+}
+
+params=("$@")
+if contains $params $# "-h"; then
+    echo "Usage: ./build [-clean-asm] [-clean] [-e] [-a] file_basename"
+    echo -e "\t-clean-asm: Remove all assembly files."
+    echo -e "\t-clean: Remove all assmbly and executable files."
+    echo -e "\t-e: Generate executable only."
+    echo -e "\t-a: Generate assembly file only."
+    exit 0
+fi
+
+executables=("standardWay" "inlineWay" "incorrectWay")
+execut_num=3
+
+compileOnly=0
+assemblyOnly=0
+compileNeeded=1
+
+for ((i = 0; i < $#; i++ )); do
+    case ${params[i]} in 
+        -clean)
+            for (( j = 0; j < 3; j++ )); do
+                rm ${executables[j]} "${executables[j]}.asm"
+            done
+            exit 0
+            ;;
+        -clean-asm)
+            for (( i = 0; i < 3; i++ )); do
+                rm "${executables[i]}.asm"
+            done
+            exit 0
+            ;;
+        -e)
+            compileOnly=1
+            ;;
+        -a)
+            assemblyOnly=1
+            ;;
+        *)
+            if [[ ${params[i]:0:1} == "-" ]]; then
+                echo "ERROR: Invalid flag (${params[i]})"
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+if [ $# -ne 0 ] && contains $executables $execut_num "${params[$(($# - 1))]}"; then
+    executables=("${params[$(($# - 1))]}")
+    execut_num=1
+fi
+
+for (( i = 0; i < $execut_num; i++ )); do
     flags="-std=c89 -Werror -Wall -Wextra -pedantic"
-    echo "clang $flags -o $1 $(echo "$1.c")"
-    clang $flags -o $1 "$1.c"
-    echo "clang $flags -S -o $(echo "$1.s") $(echo "$1.c")"
-    clang $flags -S -o "$1.s" "$1.c"
+    echo "clang $flags -o ${executables[i]} ${executables[i]}.c"
+    clang $flags -o ${executables[i]} "${executables[i]}.c"
+    echo "llvm-objdump -d -h ${executables[i]} > ${executables[i]}.asm"
+    llvm-objdump -d -h ${executables[i]} > "${executables[i]}.asm"
+done
+
+if [ $compileOnly -eq 1 ]; then
+    for (( i = 0; i < $execut_num; i++ )); do
+        rm "${executables[i]}.asm"
+    done
+fi
+
+if [ $assemblyOnly -eq 1 ]; then
+    for (( i = 0; i < $execut_num; i++ )); do
+        rm ${executables[i]}
+    done
 fi
