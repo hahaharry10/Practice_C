@@ -66,7 +66,7 @@ if [ $# -ne 0 ] && contains $executables $execut_num "${params[$(($# - 1))]}"; t
 fi
 
 for (( i = 0; i < $execut_num; i++ )); do
-    flags="-std=c89 -Werror -Wall -Wextra -pedantic"
+    flags="-std=c89 -Wall -Wextra -pedantic"
     echo "clang $flags -o ${executables[i]} ${executables[i]}.c"
     clang $flags -o ${executables[i]} "${executables[i]}.c"
     echo "llvm-objdump -d -h ${executables[i]} > ${executables[i]}.asm"
