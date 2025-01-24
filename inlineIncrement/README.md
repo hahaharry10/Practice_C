@@ -114,6 +114,9 @@ registers can be accessed as a 64 bit register by using `xn` or a 32 bit registe
 `wn`, where `n` is the register number. The called function can modify registers 0-15
 freely.
 
+When storing, the data being stored dependsd on the register being accessed. Storing `x0`
+into memory would save all 64bits whereas storing `w0` would only store 32 bits.
+
 when calling a function, registers r0 to r7 are used for parameter passing, and any further
 parameters are passed onto the stack.
 
@@ -121,14 +124,79 @@ The vast majority of operations we are going to look at uses registers. So it is
 to track when registers are being loaded to, stored to memory, and operated on as registers
 are not automatically saved to memory.
 
+There are two Zero Registers (`wxr` and `xzr`) which always reads 0 no matter what is
+stored onto it.
+
 ### The Stack
 The stack is pointed to by the stack pointer (`sp`). The stack has the following properties:
 1. The Stack Pointer is always 16-byte aligned.
 2. The stack grows downward (memory is assigned from the highest memory address first)
 
 This means that for the stack to grown, the stack pointer is subtracted (grows downward) by
-a multiple of 16 (to keep 16-byte alignment). The stack is used to store values for later
-use (there is more stack space than register space).
+a multiple of 16 (to keep 16-byte alignment).
+
+### Addressing
+Although registers are the most used operand in commands, there are other ways to address 
+data:
+- Immediate addressing: Specify the constant being used. Denoted by `#`.
+- Register addressing: Specify the register.
+- Direct Addressing: Specify the memory address.
+
+The memory Address will frequently be accessed using 'Pre-indexed addressing' which is in
+the form `[addr, op2]`, which references the address `addr+op2` (you will see this when
+accessing stack memory).
+
+### standardWay.asm
+Take a look at [standardWay.asm](./standardWay.asm). I am going to explain the instructions
+in chunks, but in each code snippets, the comments (prepended with `;` will give a brief
+desripion of the line. Note: `TAS` = The Above Snippet
+
+```
+b4c: d10043ff     	sub	sp, sp, #0x10   ; Subtrack stack pointer by 16 (remember alignmen)
+b50: f90007e0     	str	x0, [sp, #0x8]  ; store the value of x0 (param 1) into sp+8
+b54: b90007ff     	str	wzr, [sp, #0x4] ; Zero 4bytes starting from sp+4
+```
+The above snippet grows the stack by 16 bytes, stores the first argument into sp+8.
+Since sp+4 is a 4byte and is assigned to 0, we can gather that sp+4 is the address
+of variable `i`, from here onwards the comments will use the name `i` as oppose to
+address `sp+4`, and variable `arr` as oppose to address `sp+8`.
+
+```
+b58: 14000001     	b	0xb5c <standardWay+0x10>                ; Jump to the next instruction
+b5c: b94007e8     	ldr	w8, [sp, #0x4]                          ; w8 = i
+b60: 5290d409     	mov	w9, #0x86a0                             ; w9 = 0x86a0
+b64: 72a00029     	movk	w9, #0x1, lsl #16                   ; w9 = w9 OR (0x1 << 16)
+b68: 6b090108     	subs	w8, w8, w9                          ; w8 = w8 - w9
+b6c: 1a9fb7e8     	cset	w8, ge                              ; w8 = (w8 >= 0)
+b70: 37000148     	tbnz	w8, #0x0, 0xb98 <standardWay+0x4c>
+```
+
+TSA is the logic for the condition in the while loop. It gets the value of
+`i` and stores it inot `w8`, then loads the boundary, 100000, into `w9` and uses a
+subtraction and the resulting ALU flags to test if `w8 >= w9`. `tbnz` gets the 
+0th bit of w8, and branches to instruction `0xb98` if that bit is non-zero. If the
+bit is non-zero then the program branches to the code after the while loop.
+
+Assigning `w9` to 100000 requires 2 steps because the immediate addressed value
+of `mov` can be at most 16 bits and the value being assigned is `0x0186a0` (17
+bits). Therefore we use 2 statements:
+- `mov` to assign the lower 16 bits (0x86a0) to `w9`.
+- `movk` to left shift the constant `1` 16 times and bitwise `OR` the value to
+the current value of `w9` (`0x86a0 OR 0x10000 = 0x186a0 = 0d100000`).
+
+```
+b74: 14000001     	b	0xb78 <standardWay+0x2c>    ; Branch to the next instruction.
+b78: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
+b7c: f94007e9     	ldr	x9, [sp, #0x8]              ; x9 = arr
+b80: b98007ea     	ldrsw	x10, [sp, #0x4]         ;
+b84: b82a7928     	str	w8, [x9, x10, lsl #2]
+b88: b94007e8     	ldr	w8, [sp, #0x4]
+b8c: 11000508     	add	w8, w8, #0x1
+b90: b90007e8     	str	w8, [sp, #0x4]
+b94: 17fffff2     	b	0xb5c <standardWay+0x10>
+```
+
+
 
 ## Running `main`
 If you run main with:
