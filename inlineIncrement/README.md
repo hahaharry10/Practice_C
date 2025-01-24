@@ -70,7 +70,66 @@ and is intended to be read in chronological order. The subsequent sections may a
 knowledge from the previous sections. So feel free to skip sections, but you may have to
 read the preceeding sections anyway.
 
-# Let's get started
+# Preamble
+I am running on an aarch 64 machine, so all my this information will rely on the following resources:
+- Aarch64 Procedure Call Standard (https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst)
+- Learn the architecture - A64 Instruction Set Architecture (https://developer.arm.com/documentation/102374/0102)
+- ARM Compiler toolchain Using the Assembler (https://developer.arm.com/documentation/dui0473/c)
+
+Also I used ChatGPT to help me with wording some concepts.
+
+When writing this document I am in the early stages of learning and understanding assembly
+language so I will strive to produce a clear explanation of the concepts concerning this
+investigation.
+
+# Investigation:
+## Brief Lesson on Assembly
+To understand the difference in implementation of the different methods, we must first
+understand a little about assembly. This section will provide a brief explanation on the
+assembly implementation of [standardWay.c](./standardWay.c) (it is useful to learn and
+thoroughly understand this source code).
+
+To follow the assembly you can either look at [standardWay.asm](./standardWay.asm) or
+to look at [main.c](./main.c) and find the label `0000000000000b4c <standardWay>:`.
+
+### Calling the function:
+In assembly there are no function calls, there are no subroutines or function calls. But
+instead there is branching. Branching allows you to skip forward (and backward) to another
+instruction. Branching can be done unconditionally or conditionally.
+
+When calling a function in assembly you do not _call_ anything, you instead skip forward
+to the instruction that runs the functions code and then after the function is executed you
+branch back to resume execution. Look at the below flowchart, all the blocks is one 
+large code chunk, where the code of each block is immediately after the previous block.
+
+![Branch Execution Flowchat](./images/branch.png)
+
+In the function call, the execution flow skips down to the function logic, and then when
+function logic is completed, the flow skips back to the line of `main()` immediately after
+the function code.
+
+### Registers and Function Parameters:
+There are 31 accessible registers (r0-r30), but some of then have special functions. These
+registers can be accessed as a 64 bit register by using `xn` or a 32 bit register by using
+`wn`, where `n` is the register number. The called function can modify registers 0-15
+freely.
+
+when calling a function, registers r0 to r7 are used for parameter passing, and any further
+parameters are passed onto the stack.
+
+The vast majority of operations we are going to look at uses registers. So it is important
+to track when registers are being loaded to, stored to memory, and operated on as registers
+are not automatically saved to memory.
+
+### The Stack
+The stack is pointed to by the stack pointer (`sp`). The stack has the following properties:
+1. The Stack Pointer is always 16-byte aligned.
+2. The stack grows downward (memory is assigned from the highest memory address first)
+
+This means that for the stack to grown, the stack pointer is subtracted (grows downward) by
+a multiple of 16 (to keep 16-byte alignment). The stack is used to store values for later
+use (there is more stack space than register space).
+
 ## Running `main`
 If you run main with:
 ```
