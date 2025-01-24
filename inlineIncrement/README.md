@@ -188,15 +188,45 @@ the current value of `w9` (`0x86a0 OR 0x10000 = 0x186a0 = 0d100000`).
 b74: 14000001     	b	0xb78 <standardWay+0x2c>    ; Branch to the next instruction.
 b78: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
 b7c: f94007e9     	ldr	x9, [sp, #0x8]              ; x9 = arr
-b80: b98007ea     	ldrsw	x10, [sp, #0x4]         ;
-b84: b82a7928     	str	w8, [x9, x10, lsl #2]
-b88: b94007e8     	ldr	w8, [sp, #0x4]
-b8c: 11000508     	add	w8, w8, #0x1
-b90: b90007e8     	str	w8, [sp, #0x4]
+b80: b98007ea     	ldrsw	x10, [sp, #0x4]         ; x10 = (64bit) w8
+b84: b82a7928     	str	w8, [x9, x10, lsl #2]       ; x9[x10<<2] = w8
+b88: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
+b8c: 11000508     	add	w8, w8, #0x1                ; w8 = w8 + 1
+b90: b90007e8     	str	w8, [sp, #0x4]              ; i = w8
 b94: 17fffff2     	b	0xb5c <standardWay+0x10>
 ```
 
+Before we delve into TSA, lets remind ourselves about the parameter stored in
+`sp+8`. This array is an array of integers (32 bits each), and offsetting is
+in steps of one byte, so each element starts every 4 bytes from the base
+address. Therefore to get the i<sup>th</sup> element from base address `sp`,
+you would use `sp+(i*4)`, or the equivalent `sp+(i<<2)`. I did not find a
+reason in the documentation behind the casting of `w8` to 64 bits, but I would
+assume that it is to allow a greater range in representable values, reducing
+the chance of overflow.
 
+TSA handles the loops body and gets the `i`<sup>th</sup> integer value of `arr`
+and assigns it to `i`, and then increments `i`. The branch jumps back to the
+series of instructions that handle the loops condition.
+
+```asm
+b98: 2a1f03e0     	mov	w0, wzr         ; zero register w0
+b9c: 910043ff     	add	sp, sp, #0x10   ; Shrink the stack
+ba0: d65f03c0     	ret
+```
+
+TSA zero's `w0` as that would be the returned value of the function, and then
+shrinks the stack back to its original size. Then the `ret` command
+unconditionally branches back to the next instruction (pointed to by the LR).
+This is not seen in these snippets but this function is branched to using the
+`bl` command, which branches to the destination instruction while storing the 
+next instruction in the Link Register `lr` (which is how the program knows
+where to branch back with `ret`).
+
+
+Now we should have somewhat of an understanding on the correlation between
+the source code and the assembly. understanding the above will help in the
+next sections.
 
 ## Running `main`
 If you run main with:
