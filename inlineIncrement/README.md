@@ -151,7 +151,7 @@ Take a look at [standardWay.asm](./standardWay.asm). I am going to explain the i
 in chunks, but in each code snippets, the comments (prepended with `;` will give a brief
 desripion of the line. Note: `TAS` = The Above Snippet
 
-```
+```asm
 b4c: d10043ff     	sub	sp, sp, #0x10   ; Subtrack stack pointer by 16 (remember alignmen)
 b50: f90007e0     	str	x0, [sp, #0x8]  ; store the value of x0 (param 1) into sp+8
 b54: b90007ff     	str	wzr, [sp, #0x4] ; Zero 4bytes starting from sp+4
@@ -161,7 +161,7 @@ Since sp+4 is a 4byte and is assigned to 0, we can gather that sp+4 is the addre
 of variable `i`, from here onwards the comments will use the name `i` as oppose to
 address `sp+4`, and variable `arr` as oppose to address `sp+8`.
 
-```
+```asm
 b58: 14000001     	b	0xb5c <standardWay+0x10>                ; Jump to the next instruction
 b5c: b94007e8     	ldr	w8, [sp, #0x4]                          ; w8 = i
 b60: 5290d409     	mov	w9, #0x86a0                             ; w9 = 0x86a0
@@ -184,7 +184,7 @@ bits). Therefore we use 2 statements:
 - `movk` to left shift the constant `1` 16 times and bitwise `OR` the value to
 the current value of `w9` (`0x86a0 OR 0x10000 = 0x186a0 = 0d100000`).
 
-```
+```asm
 b74: 14000001     	b	0xb78 <standardWay+0x2c>    ; Branch to the next instruction.
 b78: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
 b7c: f94007e9     	ldr	x9, [sp, #0x8]              ; x9 = arr
