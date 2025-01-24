@@ -1,9 +1,11 @@
-int main(void) {
-    int i, arr[10];
+#include "ways.h"
+
+int incorrectWay(int arr[MAX]) {
+    int i;
 
     i = 0;
-    while( i < 10 ) {
-        arr[i++] = i;
+    while( i < MAX ) {
+        arr[i] = i++;
     }
 
     return 0;

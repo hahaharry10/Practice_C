@@ -16,11 +16,9 @@ contains () {
 
 params=("$@")
 if contains $params $# "-h"; then
-    echo "Usage: ./build [-clean-asm] [-clean] [-e] [-a] file_basename"
+    echo "Usage: ./build [-clean-asm] [-clean] file_basename"
     echo -e "\t-clean-asm: Remove all assembly files."
     echo -e "\t-clean: Remove all assmbly and executable files."
-    echo -e "\t-e: Generate executable only."
-    echo -e "\t-a: Generate assembly file only."
     exit 0
 fi
 
@@ -35,21 +33,17 @@ for ((i = 0; i < $#; i++ )); do
     case ${params[i]} in 
         -clean)
             for (( j = 0; j < 3; j++ )); do
-                rm ${executables[j]} "${executables[j]}.asm"
+                rm "${executables[j]}.o" "${executables[j]}.asm"
             done
+            rm main main.asm
             exit 0
             ;;
         -clean-asm)
             for (( i = 0; i < 3; i++ )); do
                 rm "${executables[i]}.asm"
             done
+            rm main.asm
             exit 0
-            ;;
-        -e)
-            compileOnly=1
-            ;;
-        -a)
-            assemblyOnly=1
             ;;
         *)
             if [[ ${params[i]:0:1} == "-" ]]; then
@@ -65,22 +59,22 @@ if [ $# -ne 0 ] && contains $executables $execut_num "${params[$(($# - 1))]}"; t
     execut_num=1
 fi
 
+obj_files=""
 for (( i = 0; i < $execut_num; i++ )); do
     flags="-std=c89 -Wall -Wextra -pedantic"
-    echo "clang $flags -o ${executables[i]} ${executables[i]}.c"
-    clang $flags -o ${executables[i]} "${executables[i]}.c"
-    echo "llvm-objdump -d -h ${executables[i]} > ${executables[i]}.asm"
-    llvm-objdump -d -h ${executables[i]} > "${executables[i]}.asm"
+    echo "clang $flags -c -o ${executables[i]}.o ${executables[i]}.c"
+    clang $flags -c -o "${executables[i]}.o" "${executables[i]}.c"
+    echo "llvm-objdump -d -h "${executables[i]}.o" > ${executables[i]}.asm"
+    llvm-objdump -d -h "${executables[i]}.o" > "${executables[i]}.asm"
 done
 
-if [ $compileOnly -eq 1 ]; then
-    for (( i = 0; i < $execut_num; i++ )); do
-        rm "${executables[i]}.asm"
-    done
-fi
+for (( i = 0; i < $execut_num; i++ )); do
+    obj_files="$obj_files ${executables[i]}.o"
+done
 
-if [ $assemblyOnly -eq 1 ]; then
-    for (( i = 0; i < $execut_num; i++ )); do
-        rm ${executables[i]}
-    done
-fi
+echo "clang $flags -o main $obj_files"
+clang $flags -o main main.c $obj_files
+echo "llvm-objdump -d -h main > main.asm"
+llvm-objdump -d -h main > main.asm
+
+exit 0
