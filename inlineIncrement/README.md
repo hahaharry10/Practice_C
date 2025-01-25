@@ -223,10 +223,36 @@ This is not seen in these snippets but this function is branched to using the
 next instruction in the Link Register `lr` (which is how the program knows
 where to branch back with `ret`).
 
+### Lessons:
+The aims above focussed on understanding two incrementing and memory access.
+Before we finish this section let's focus on these:
 
+Memory is accessed from a base address and an offset. The base address in an
+array would be the pointer to the array (`arr`). The offset is in steps of 
+one byte, so to access and integer array (an integer is 4-bytes) you would
+offset in multiples of 4, bit shift leftward twice. Given that the base
+address (`arr`) is stored in register `x9`, register `x10` holds the element
+index (`i`), and `w8` holds the value you are assigning (`i`), it makes sense
+how
+    `str	w8, [x9, x10, lsl #2]`
+works. It is the equivalent of the C code `((char) arr)+(i<<2) = i`.
+
+Variable increments are handled in a more clear way. The structure is simply:
+1. Load variable from memory into a register.
+2. Increment register value.
+3. Store result back into memory.
+This is shown in these lines:
+```
+ldr	w8, [sp, #0x4]  ; load value from memory into a register.
+add	w8, w8, #0x1    ; Add register value to 1.
+str	w8, [sp, #0x4]  ; Store register value back into memory.
+```
+
+### Final Remarks
 Now we should have somewhat of an understanding on the correlation between
-the source code and the assembly. understanding the above will help in the
-next sections.
+C code and the assembly. Especially we should be able to identify the assembly
+implementations of the key parts of the C code (assignment and increment).
+Being familiar with these will help with the next sections.
 
 ## Running `main`
 If you run main with:
@@ -255,7 +281,7 @@ After running 10 times we get the following average times:
 |Inline Way|524.7|
 |Incorrect Way|127.1|
 
-NOTE: We are reading in processor time over 100000 iterations. So the differences in
+NOTE: We are reading in processor time over 100000 iterations, So the differences in
 processing costs is minute.
 
 Initial Observations:
@@ -263,4 +289,6 @@ Initial Observations:
 - Even though both the incorrect and inline way have an inlined incrementation, the
 incorrect way is 400% quicker.
 - Having two separate statements are quicker than incrementing upon memory access.
+
+## Assembly Difference:
 
