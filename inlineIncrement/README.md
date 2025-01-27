@@ -347,7 +347,7 @@ My first two questions are:
 [inlineWay.asm](./inlineWay.asm) when the standard way contains more
 stack memory operations?
     - Isn't accessing the stack much slower than accessing registers?
-    - The standard way accesses the stack 4 times (two `str` operations
+    - The standard way accesses the stack thrice (two `str` operations
     and one `ldr` operation).
     - The inline way accesses the stack twice (two `str` operations).
 
