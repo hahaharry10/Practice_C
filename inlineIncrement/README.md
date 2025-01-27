@@ -290,7 +290,7 @@ Initial Observations:
 incorrect way is 400% quicker.
 - Having two separate statements are quicker than incrementing upon memory access.
 
-## Assembly Difference:
+## Standard vs Inline:
 To start looking where the difference in execution time comes from, let's look at the
 difference in the assembly. Look at [standardWay.asm](./standardWay.asm) and
 [inlineWay.asm](./inlineWay.asm).
@@ -321,4 +321,34 @@ most of the assembly is the same, apart from the following:
         </td>
     </tr>
 </table>
+
+Reminder: The registers are assigned as follows:
+- `w8`: The original value of `i`.
+- `x9`: The value of `arr`.
+- `x10`: the value of `i` casted to 64-bits.
+
+[inlineWay.asm](./inlineWay.asm) retrieves the least significant 32 bits
+of the 64-bit word (i.e. casts the now 64-bit value back to 32 bits and
+stores it in `w11`), increments the value by one, and stores the value
+back into the stack (updating `i`). Finally the original value of `i`
+is assigned to the appropriate location of `arr`.
+
+[standardWay.asm](./standardWay.asm) stores the value of `i` into the
+appropriate location of `arr`, loads `i` into `w8`, increments it by
+one and then stores it back onto the stack (updating `i`).
+
+My first two questions are:
+- In [standardWay.asm](./standardWay.asm) Why load `i` into `w8` again?
+    - Probably done automatically by the compiler to ensure correctness
+    (`w8` could have been modified earlier).
+    - The compiler may not know the bigger picture of how the code runs
+    like we do.
+- Why is [standardWay.asm](./standardWay.asm) quicker than than
+[inlineWay.asm](./inlineWay.asm) when the standard way contains more
+stack memory operations?
+    - Isn't accessing the stack much slower than accessing registers?
+    - The standard way accesses the stack 4 times (two `str` operations
+    and one `ldr` operation).
+    - The inline way accesses the stack twice (two `str` operations).
+
 
