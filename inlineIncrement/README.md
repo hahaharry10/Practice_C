@@ -296,7 +296,6 @@ difference in the assembly. Look at [standardWay.asm](./standardWay.asm) and
 [inlineWay.asm](./inlineWay.asm).
 As the function parameters, initialisations, and `while` conditions are identical,
 most of the assembly is the same, apart from the following:
-[standardWay.asm](./standardWay.asm)
 
 <table>
     <tr>
