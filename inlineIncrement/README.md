@@ -324,5 +324,6 @@ most of the assembly is the same, apart from the following:
 
             ```
         </td>
+    </tr>
 </table>
 
