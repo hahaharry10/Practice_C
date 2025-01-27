@@ -294,35 +294,31 @@ incorrect way is 400% quicker.
 To start looking where the difference in execution time comes from, let's look at the
 difference in the assembly. Look at [standardWay.asm](./standardWay.asm) and
 [inlineWay.asm](./inlineWay.asm).
-
 As the function parameters, initialisations, and `while` conditions are identical,
 most of the assembly is the same, apart from the following:
 [standardWay.asm](./standardWay.asm)
 
 <table>
     <tr>
-        <th>[standardWay.asm](./standardWay.asm)</th>
-        <th>[inlineWay.asm](./inlineWay.asm)</th>
+        <th><a href=standardWay.asm>standardWay.asm</a></th>
+        <th><a href=inlineWay.asm>inlineWay.asm</a></th>
     </tr>
     <tr>
         <td>
-            ```asm
-
-            38: b82a7928     	str	w8, [x9, x10, lsl #2]
-            3c: b94007e8     	ldr	w8, [sp, #0x4]
-            40: 11000508     	add	w8, w8, #0x1
-            44: b90007e8     	str	w8, [sp, #0x4]
-
-            ```
+<pre>
+38: b82a7928     	str	w8, [x9, x10, lsl #2]
+3c: b94007e8     	ldr	w8, [sp, #0x4]
+40: 11000508     	add	w8, w8, #0x1
+44: b90007e8     	str	w8, [sp, #0x4]
+</pre>
         </td>
         <td>
-            ```asm
-            38: 2a0a03eb     	mov	w11, w10
-            3c: 1100056b     	add	w11, w11, #0x1
-            40: b90007eb     	str	w11, [sp, #0x4]
-            44: b82a7928     	str	w8, [x9, x10, lsl #2]
-
-            ```
+<pre>
+38: 2a0a03eb     	mov	w11, w10
+3c: 1100056b     	add	w11, w11, #0x1
+40: b90007eb     	str	w11, [sp, #0x4]
+44: b82a7928     	str	w8, [x9, x10, lsl #2]
+</pre>
         </td>
     </tr>
 </table>
