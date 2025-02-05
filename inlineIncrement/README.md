@@ -381,14 +381,14 @@ compiler naturally ends the block with a branch to the start of the next block
 even if the next block is immediately following.
 
 Sources:
-    - Basic Blocks, [wikipedia](https://en.wikipedia.org/wiki/Basic_block)
-    (https://en.wikipedia.org/wiki/Basic_block)
-    - Control Flow Graph,
-    [wikipedia](https://en.wikipedia.org/wiki/Control-flow_graph)
-    (https://en.wikipedia.org/wiki/Control-flow_graph) 
+- Basic Blocks, [wikipedia](https://en.wikipedia.org/wiki/Basic_block)
+(https://en.wikipedia.org/wiki/Basic_block)
+- Control Flow Graph,
+[wikipedia](https://en.wikipedia.org/wiki/Control-flow_graph)
+(https://en.wikipedia.org/wiki/Control-flow_graph) 
 
-### Instruction Level Parallelism (PLL)
-Instruction Level Parallelism (PLL) describes the processors concurrent
+### Instruction Level Parallelism (ILP)
+Instruction Level Parallelism (ILP) describes the processors concurrent
 execution of instructions. In order for instructions to be parallelised, they
 must have no data dependencies (the instruction must not depend on data being
 modified by the previous instructions).
@@ -432,9 +432,9 @@ is the reason for the difference in execution time, however I am confident that
 it is a key factor.
 
 Sources:
-    - Instruction-level Parallelism,
-    [wikipedia](https://en.wikipedia.org/wiki/Instruction-level_parallelism)
-    - AArch64 latency / throughput benchmark report,
-    [ocxtal/insn_bench_aarch64](https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md) 
-    - Apple Silicon CPU Optimization Guide
+- Instruction-level Parallelism,
+[wikipedia](https://en.wikipedia.org/wiki/Instruction-level_parallelism)
+- AArch64 latency / throughput benchmark report,
+[ocxtal/insn_bench_aarch64](https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md) 
+- Apple Silicon CPU Optimization Guide
 
