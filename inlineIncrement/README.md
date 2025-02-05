@@ -337,18 +337,86 @@ is assigned to the appropriate location of `arr`.
 appropriate location of `arr`, loads `i` into `w8`, increments it by
 one and then stores it back onto the stack (updating `i`).
 
-My first two questions are:
-- In [standardWay.asm](./standardWay.asm) Why load `i` into `w8` again?
-    - Probably done automatically by the compiler to ensure correctness
-    (`w8` could have been modified earlier).
-    - The compiler may not know the bigger picture of how the code runs
-    like we do.
-- Why is [standardWay.asm](./standardWay.asm) quicker than than
+### Initial Questions
+My first questions are:
+1. Why are there redundant branching?
+    - Instructions `28` and `c` are unnecessary.
+    - Answer: [Basic Blocks](./README.md#basic-blocks)
+2. In [standardWay.asm](./standardWay.asm) Why load `i` into `w8` again?
+    - Probably done by the compiler automatically as a result of splitting the
+    code into basic blocks.
+3. Why is [standardWay.asm](./standardWay.asm) quicker than than
 [inlineWay.asm](./inlineWay.asm) when the standard way contains more
 stack memory operations?
     - Isn't accessing the stack much slower than accessing registers?
     - The standard way accesses the stack thrice (two `str` operations
-    and one `ldr` operation).
-    - The inline way accesses the stack twice (two `str` operations).
+    and one `ldr` operation) but the inline way accesses the stack twice (two
+    `str` operations).
+    - Answer:
+    [Instruction Level Parallelism](./README.md#instruction-level-parallelism-pll)
 
+### Basic Blocks
+A basic block is a straight line block of code with no branches in except at
+the entry, and no branches out except at the exit. The compiler splits the code
+into basic blocks and uses branching to control flow between the blocks. The
+compiler naturally ends the block with a branch to the start of the next block
+even if the next block is immediately following.
+
+Sources:
+    - Basic Blocks, [wikipedia](https://en.wikipedia.org/wiki/Basic_block)
+    (https://en.wikipedia.org/wiki/Basic_block)
+    - Control Flow Graph,
+    [wikipedia](https://en.wikipedia.org/wiki/Control-flow_graph)
+    (https://en.wikipedia.org/wiki/Control-flow_graph) 
+
+### Instruction Level Parallelism (PLL)
+Instruction Level Parallelism (PLL) describes the processors concurrent
+execution of instructions. In order for instructions to be parallelised, they
+must have no data dependencies (the instruction must not depend on data being
+modified by the previous instructions).
+
+First look at the two instructions in [standardWay.asm](./standardWay.asm):
+```asm
+38: b82a7928     	str	w8, [x9, x10, lsl #2]
+3c: b94007e8     	ldr	w8, [sp, #0x4]
+```
+The writing to memory of instruction `38` is slow as it takes a long time to
+send the value of `w8` to memory. However once the value of `w8` has been sent,
+the register can be used, even if the memory write has not finished. Therefore
+isntruction `3c` can begin execution before the completion of instruciton `38`.
+
+The following instructions, `40` and `44`, cannot be parallelised as they rely
+on the value of register `w8` which is being modified by the previous
+instruction, therefore they must wait for the previous instruciton to execute
+completely.
+
+Now look at the instructions in [inlineWay.asm](./inlineWay.asm):
+```asm
+38: 2a0a03eb     	mov	w11, w10
+3c: 1100056b     	add	w11, w11, #0x1
+40: b90007eb     	str	w11, [sp, #0x4]
+44: b82a7928     	str	w8, [x9, x10, lsl #2]
+```
+
+Instructions `38`, `3c`, and `40` all access register `w11`, meaning they
+cannot be executed in parallel. However write instructions `40` and `44` are
+able to be executed in parallel since there are no data dependencies.
+
+However, the command `str	w8, [x9, x10, lsl #2]` is quite expensive, having
+an offset addition calculation and a bit shift, this combined with the write to
+memory is a time consuming task. In the standard way this instruction is near
+the start of the block, allowing the proceeding instructions to be executed
+in parallel. In the inline way this instruction is at the end of the block,
+with no proceeding instructions, so the program may be idle until completion.
+
+Note: I have not yet found conclusive proof that instruction level parallelism
+is the reason for the difference in execution time, however I am confident that
+it is a key factor.
+
+Sources:
+    - Instruction-level Parallelism,
+    [wikipedia](https://en.wikipedia.org/wiki/Instruction-level_parallelism)
+    - AArch64 latency / throughput benchmark report,
+    [ocxtal/insn_bench_aarch64](https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md) 
+    - Apple Silicon CPU Optimization Guide
 
