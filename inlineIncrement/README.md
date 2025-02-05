@@ -434,7 +434,9 @@ it is a key factor.
 Sources:
 - Instruction-level Parallelism,
 [wikipedia](https://en.wikipedia.org/wiki/Instruction-level_parallelism)
+(https://en.wikipedia.org/wiki/Instruction-level_parallelism)
 - AArch64 latency / throughput benchmark report,
 [ocxtal/insn_bench_aarch64](https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md) 
+(https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md)
 - Apple Silicon CPU Optimization Guide
 
