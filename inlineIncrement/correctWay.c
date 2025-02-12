@@ -1,6 +1,6 @@
 #include "ways.h"
 
-int standardWay(int arr[MAX]) {
+int correctWay(int arr[MAX]) {
     int i;
 
     i = 0;

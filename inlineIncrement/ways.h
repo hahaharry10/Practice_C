@@ -3,8 +3,8 @@
 
 #define MAX 100000
 
-int standardWay(int arr[MAX]);
-int inlineWay(int arr[MAX]);
-int incorrectWay(int arr[MAX]);
+int correctWay(int arr[MAX]);
+int LHSincrement(int arr[MAX]);
+int RHSincrement(int arr[MAX]);
 
 #endif

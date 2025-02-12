@@ -1,6 +1,6 @@
 #include "ways.h"
 
-int incorrectWay(int arr[MAX]) {
+int RHSincrement(int arr[MAX]) {
     int i;
 
     i = 0;

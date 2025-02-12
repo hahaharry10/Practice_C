@@ -1,6 +1,6 @@
 #include "ways.h"
 
-int inlineWay(int arr[MAX]) {
+int LHSincrement(int arr[MAX]) {
     int i;
 
     i = 0;

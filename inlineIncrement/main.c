@@ -27,9 +27,9 @@ int main(void) {
 
     /* Test Standard Way */
     startTime = clock();
-    standardWay(arr);
+    correctWay(arr);
     endTime = clock();
-    fprintf(stdout, "The Standard Way:\n");
+    fprintf(stdout, "The Correct Way:\n");
     check(arr);
     fprintf(stdout, "Time: %lu\n", (unsigned long) endTime - startTime);
 
@@ -37,9 +37,9 @@ int main(void) {
 
     /* Test Standard Way */
     startTime = clock();
-    inlineWay(arr);
+    LHSincrement(arr);
     endTime = clock();
-    fprintf(stdout, "The inline Way:\n");
+    fprintf(stdout, "arr[var++] = var:\n");
     check(arr);
     fprintf(stdout, "Time: %lu\n", (unsigned long) endTime - startTime);
 
@@ -47,9 +47,9 @@ int main(void) {
 
     /* Test Incorrect Way */
     startTime = clock();
-    incorrectWay(arr);
+    RHSincrement(arr);
     endTime = clock();
-    fprintf(stdout, "The incorrect Way:\n");
+    fprintf(stdout, "arr[var] = var++:\n");
     check(arr);
     fprintf(stdout, "Time: %lu\n", (unsigned long) endTime - startTime);
 
