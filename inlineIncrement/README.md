@@ -575,8 +575,7 @@ The array assignments for the different compilers are summerised below:
 |:----------|:------------:|:-----------:|
 |[standardWay.c](./standardWay.c)| All correct | All correct |
 |[inlineWay.c](./inlineWay.c)| Correct | All incorrect |
-|[incorrectWay.c](./incorrectWay.c)| All incorrect | All incorrect apart from 
-`arr[0]`|
+|[incorrectWay.c](./incorrectWay.c)| All incorrect | All incorrect apart from `arr[0]`|
 
 This shows the unpredictability of undefined behaviour, and the importance of
 testing, you may have code running fine on your machine, but as soon as a
