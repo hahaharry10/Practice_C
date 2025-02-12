@@ -4,7 +4,7 @@ correctWay.o:	file format elf64-littleaarch64
 Sections:
 Idx Name            Size     VMA              Type
   0                 00000000 0000000000000000 
-  1 .strtab         00000075 0000000000000000 
+  1 .strtab         00000074 0000000000000000 
   2 .text           00000058 0000000000000000 TEXT
   3 .comment        00000025 0000000000000000 
   4 .note.GNU-stack 00000000 0000000000000000 
@@ -15,18 +15,18 @@ Idx Name            Size     VMA              Type
 
 Disassembly of section .text:
 
-0000000000000000 <standardWay>:
+0000000000000000 <correctWay>:
        0: d10043ff     	sub	sp, sp, #0x10
        4: f90007e0     	str	x0, [sp, #0x8]
        8: b90007ff     	str	wzr, [sp, #0x4]
-       c: 14000001     	b	0x10 <standardWay+0x10>
+       c: 14000001     	b	0x10 <correctWay+0x10>
       10: b94007e8     	ldr	w8, [sp, #0x4]
       14: 5290d409     	mov	w9, #0x86a0
       18: 72a00029     	movk	w9, #0x1, lsl #16
       1c: 6b090108     	subs	w8, w8, w9
       20: 1a9fb7e8     	cset	w8, ge
-      24: 37000148     	tbnz	w8, #0x0, 0x4c <standardWay+0x4c>
-      28: 14000001     	b	0x2c <standardWay+0x2c>
+      24: 37000148     	tbnz	w8, #0x0, 0x4c <correctWay+0x4c>
+      28: 14000001     	b	0x2c <correctWay+0x2c>
       2c: b94007e8     	ldr	w8, [sp, #0x4]
       30: f94007e9     	ldr	x9, [sp, #0x8]
       34: b98007ea     	ldrsw	x10, [sp, #0x4]
@@ -34,7 +34,7 @@ Disassembly of section .text:
       3c: b94007e8     	ldr	w8, [sp, #0x4]
       40: 11000508     	add	w8, w8, #0x1
       44: b90007e8     	str	w8, [sp, #0x4]
-      48: 17fffff2     	b	0x10 <standardWay+0x10>
+      48: 17fffff2     	b	0x10 <correctWay+0x10>
       4c: 2a1f03e0     	mov	w0, wzr
       50: 910043ff     	add	sp, sp, #0x10
       54: d65f03c0     	ret

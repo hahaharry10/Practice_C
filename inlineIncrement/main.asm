@@ -30,7 +30,7 @@ Idx Name               Size     VMA              Type
  24 .bss               00000008 0000000000020040 BSS
  25 .comment           00000042 0000000000000000 
  26 .symtab            00000a38 0000000000000000 
- 27 .strtab            000002ca 0000000000000000 
+ 27 .strtab            000002ce 0000000000000000 
  28 .shstrtab          00000103 0000000000000000 
 
 Disassembly of section .init:
@@ -289,7 +289,7 @@ Disassembly of section .text:
      9fc: f9001be0     	str	x0, [sp, #0x30]
      a00: 9100e3e0     	add	x0, sp, #0x38
      a04: f90003e0     	str	x0, [sp]
-     a08: 94000051     	bl	0xb4c <standardWay>
+     a08: 94000051     	bl	0xb4c <correctWay>
      a0c: 97ffff29     	bl	0x6b0 <clock@plt>
      a10: f94013e8     	ldr	x8, [sp, #0x20]
      a14: f90017e0     	str	x0, [sp, #0x28]
@@ -305,7 +305,7 @@ Disassembly of section .text:
      a3c: f9401be9     	ldr	x9, [sp, #0x30]
      a40: eb090102     	subs	x2, x8, x9
      a44: 90000001     	adrp	x1, 0x0 <stdout@GLIBC_2.17>
-     a48: 91335c21     	add	x1, x1, #0xcd7
+     a48: 91335821     	add	x1, x1, #0xcd6
      a4c: f90007e1     	str	x1, [sp, #0x8]
      a50: 97ffff2c     	bl	0x700 <fprintf@plt>
      a54: f94013e8     	ldr	x8, [sp, #0x20]
@@ -318,13 +318,13 @@ Disassembly of section .text:
      a70: aa0003e8     	mov	x8, x0
      a74: f94003e0     	ldr	x0, [sp]
      a78: f9001be8     	str	x8, [sp, #0x30]
-     a7c: 9400004a     	bl	0xba4 <inlineWay>
+     a7c: 9400004a     	bl	0xba4 <LHSincrement>
      a80: 97ffff0c     	bl	0x6b0 <clock@plt>
      a84: f94013e8     	ldr	x8, [sp, #0x20]
      a88: f90017e0     	str	x0, [sp, #0x28]
      a8c: f9400100     	ldr	x0, [x8]
      a90: 90000001     	adrp	x1, 0x0 <stdout@GLIBC_2.17>
-     a94: 91338821     	add	x1, x1, #0xce2
+     a94: 91338421     	add	x1, x1, #0xce1
      a98: 97ffff1a     	bl	0x700 <fprintf@plt>
      a9c: f94003e0     	ldr	x0, [sp]
      aa0: 97ffff72     	bl	0x868 <check>
@@ -343,13 +343,13 @@ Disassembly of section .text:
      ad4: aa0003e8     	mov	x8, x0
      ad8: f94003e0     	ldr	x0, [sp]
      adc: f9001be8     	str	x8, [sp, #0x30]
-     ae0: 94000047     	bl	0xbfc <incorrectWay>
+     ae0: 94000047     	bl	0xbfc <RHSincrement>
      ae4: 97fffef3     	bl	0x6b0 <clock@plt>
      ae8: f94013e8     	ldr	x8, [sp, #0x20]
      aec: f90017e0     	str	x0, [sp, #0x28]
      af0: f9400100     	ldr	x0, [x8]
      af4: 90000001     	adrp	x1, 0x0 <stdout@GLIBC_2.17>
-     af8: 9133cc21     	add	x1, x1, #0xcf3
+     af8: 9133d021     	add	x1, x1, #0xcf4
      afc: 97ffff01     	bl	0x700 <fprintf@plt>
      b00: f94003e0     	ldr	x0, [sp]
      b04: 97ffff59     	bl	0x868 <check>
@@ -371,18 +371,18 @@ Disassembly of section .text:
      b44: a8c27bfd     	ldp	x29, x30, [sp], #0x20
      b48: d65f03c0     	ret
 
-0000000000000b4c <standardWay>:
+0000000000000b4c <correctWay>:
      b4c: d10043ff     	sub	sp, sp, #0x10
      b50: f90007e0     	str	x0, [sp, #0x8]
      b54: b90007ff     	str	wzr, [sp, #0x4]
-     b58: 14000001     	b	0xb5c <standardWay+0x10>
+     b58: 14000001     	b	0xb5c <correctWay+0x10>
      b5c: b94007e8     	ldr	w8, [sp, #0x4]
      b60: 5290d409     	mov	w9, #0x86a0
      b64: 72a00029     	movk	w9, #0x1, lsl #16
      b68: 6b090108     	subs	w8, w8, w9
      b6c: 1a9fb7e8     	cset	w8, ge
-     b70: 37000148     	tbnz	w8, #0x0, 0xb98 <standardWay+0x4c>
-     b74: 14000001     	b	0xb78 <standardWay+0x2c>
+     b70: 37000148     	tbnz	w8, #0x0, 0xb98 <correctWay+0x4c>
+     b74: 14000001     	b	0xb78 <correctWay+0x2c>
      b78: b94007e8     	ldr	w8, [sp, #0x4]
      b7c: f94007e9     	ldr	x9, [sp, #0x8]
      b80: b98007ea     	ldrsw	x10, [sp, #0x4]
@@ -390,23 +390,23 @@ Disassembly of section .text:
      b88: b94007e8     	ldr	w8, [sp, #0x4]
      b8c: 11000508     	add	w8, w8, #0x1
      b90: b90007e8     	str	w8, [sp, #0x4]
-     b94: 17fffff2     	b	0xb5c <standardWay+0x10>
+     b94: 17fffff2     	b	0xb5c <correctWay+0x10>
      b98: 2a1f03e0     	mov	w0, wzr
      b9c: 910043ff     	add	sp, sp, #0x10
      ba0: d65f03c0     	ret
 
-0000000000000ba4 <inlineWay>:
+0000000000000ba4 <LHSincrement>:
      ba4: d10043ff     	sub	sp, sp, #0x10
      ba8: f90007e0     	str	x0, [sp, #0x8]
      bac: b90007ff     	str	wzr, [sp, #0x4]
-     bb0: 14000001     	b	0xbb4 <inlineWay+0x10>
+     bb0: 14000001     	b	0xbb4 <LHSincrement+0x10>
      bb4: b94007e8     	ldr	w8, [sp, #0x4]
      bb8: 5290d409     	mov	w9, #0x86a0
      bbc: 72a00029     	movk	w9, #0x1, lsl #16
      bc0: 6b090108     	subs	w8, w8, w9
      bc4: 1a9fb7e8     	cset	w8, ge
-     bc8: 37000148     	tbnz	w8, #0x0, 0xbf0 <inlineWay+0x4c>
-     bcc: 14000001     	b	0xbd0 <inlineWay+0x2c>
+     bc8: 37000148     	tbnz	w8, #0x0, 0xbf0 <LHSincrement+0x4c>
+     bcc: 14000001     	b	0xbd0 <LHSincrement+0x2c>
      bd0: b94007e8     	ldr	w8, [sp, #0x4]
      bd4: f94007e9     	ldr	x9, [sp, #0x8]
      bd8: b98007ea     	ldrsw	x10, [sp, #0x4]
@@ -414,30 +414,30 @@ Disassembly of section .text:
      be0: 1100056b     	add	w11, w11, #0x1
      be4: b90007eb     	str	w11, [sp, #0x4]
      be8: b82a7928     	str	w8, [x9, x10, lsl #2]
-     bec: 17fffff2     	b	0xbb4 <inlineWay+0x10>
+     bec: 17fffff2     	b	0xbb4 <LHSincrement+0x10>
      bf0: 2a1f03e0     	mov	w0, wzr
      bf4: 910043ff     	add	sp, sp, #0x10
      bf8: d65f03c0     	ret
 
-0000000000000bfc <incorrectWay>:
+0000000000000bfc <RHSincrement>:
      bfc: d10043ff     	sub	sp, sp, #0x10
      c00: f90007e0     	str	x0, [sp, #0x8]
      c04: b90007ff     	str	wzr, [sp, #0x4]
-     c08: 14000001     	b	0xc0c <incorrectWay+0x10>
+     c08: 14000001     	b	0xc0c <RHSincrement+0x10>
      c0c: b94007e8     	ldr	w8, [sp, #0x4]
      c10: 5290d409     	mov	w9, #0x86a0
      c14: 72a00029     	movk	w9, #0x1, lsl #16
      c18: 6b090108     	subs	w8, w8, w9
      c1c: 1a9fb7e8     	cset	w8, ge
-     c20: 37000128     	tbnz	w8, #0x0, 0xc44 <incorrectWay+0x48>
-     c24: 14000001     	b	0xc28 <incorrectWay+0x2c>
+     c20: 37000128     	tbnz	w8, #0x0, 0xc44 <RHSincrement+0x48>
+     c24: 14000001     	b	0xc28 <RHSincrement+0x2c>
      c28: b94007e8     	ldr	w8, [sp, #0x4]
      c2c: 11000509     	add	w9, w8, #0x1
      c30: b90007e9     	str	w9, [sp, #0x4]
      c34: f94007e9     	ldr	x9, [sp, #0x8]
      c38: b98007ea     	ldrsw	x10, [sp, #0x4]
      c3c: b82a7928     	str	w8, [x9, x10, lsl #2]
-     c40: 17fffff3     	b	0xc0c <incorrectWay+0x10>
+     c40: 17fffff3     	b	0xc0c <RHSincrement+0x10>
      c44: 2a1f03e0     	mov	w0, wzr
      c48: 910043ff     	add	sp, sp, #0x10
      c4c: d65f03c0     	ret
