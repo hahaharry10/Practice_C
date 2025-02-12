@@ -1,5 +1,5 @@
 
-incorrectWay.o:	file format elf64-littleaarch64
+RHSincrement.o:	file format elf64-littleaarch64
 
 Sections:
 Idx Name            Size     VMA              Type

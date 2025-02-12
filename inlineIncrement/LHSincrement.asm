@@ -1,10 +1,10 @@
 
-inlineWay.o:	file format elf64-littleaarch64
+LHSincrement.o:	file format elf64-littleaarch64
 
 Sections:
 Idx Name            Size     VMA              Type
   0                 00000000 0000000000000000 
-  1 .strtab         00000072 0000000000000000 
+  1 .strtab         00000075 0000000000000000 
   2 .text           00000058 0000000000000000 TEXT
   3 .comment        00000025 0000000000000000 
   4 .note.GNU-stack 00000000 0000000000000000 
