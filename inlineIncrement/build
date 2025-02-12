@@ -24,7 +24,7 @@ if contains $params $# "-h"; then
     exit 0
 fi
 
-executables=("standardWay" "inlineWay" "incorrectWay")
+executables=("correctWay" "LHSincrement" "RHSincrement")
 execut_num=3
 
 compileOnly=0
