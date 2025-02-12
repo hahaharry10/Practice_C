@@ -440,3 +440,87 @@ Sources:
 (https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md)
 - Apple Silicon CPU Optimization Guide
 
+## The Incorrect Way:
+Before this investigation I had never encountered or written a statement that
+included both a variables access and increment. Therefor I did not know which
+of the below lines of code was correct. As confessed
+[earlier](./README.md#admission-of-ignorance), I initially guessed wrong.
+
+My reasoning for this error was that C code is executed as it is read, so the
+statement `arr[i] = i++;` run as the following:
+1. Retrieve address `arr[i]`
+2. Access `i`
+3. Increment `i`.
+
+But apparently not. Apparently this is undefined behaviour. Apparently both
+[inlineWay.c](./inlineWay.c) and [incorrectWay.c](./incorrectWay.c) are
+undefined behaviour. So as always this inestigation started off with a whole
+lot of ignorance. But hopefully there will be a lot of learning from it. So
+without further ado, let's start by learning about the difference between
+undefined behaviour and unspecified behaviour.
+
+# Undefined vs Unspecified Behaviour
+The [ISO C standard](https://www.iso.org/obp/ui/en/#iso:std:iso-iec:9899:ed-5:v1:en:term:3.30)
+defines undefined behaviour as the following:
+
+    "behavior, upon use of a nonportable or erroneous program construct or of
+    erroneous data, for which this document imposes no requirements"
+
+For context the ISO defines the standard C behaviour, all the standards - c89,
+c99, c11, etc. - specify behaviours of the language. Undefined behaviour is
+therefore behaviour that does not have to conform to the rules, and therefore
+can behave in any way, no matter how dangerous.
+
+The [ISO C standard](https://www.iso.org/obp/ui/en/#iso:std:iso-iec:9899:ed-5:v1:en:term:3.30)
+defines unspecified behaviour as the following:
+
+    "behavior, that results from the use of an unspecified value, or other
+    behavior upon which this document provides two or more possibilities and
+    imposes no further requirements on which is chosen in any instance"
+
+This differs from undefined behaviour as unspecified behaviour has a selection
+of possible outcomes, whereas there is no way to know how undefined behaviour
+will act.
+
+Note: The above definitions are from the C24 standard, although are identical
+to the C89 standard the programs were compiled with.
+
+## Sequence Points:
+The [C89 standard](https://port70.net/~nsz/c/c89/c89-draft.html) defines a
+sequence point as a point where all previous executions are complete and no
+future executions have started. This concept is important as it allows you to
+understand at what point operations are carried out.
+
+Sequence points according to the C89 standard define sequence points as being
+placed:
+- Between the operands in `&&` and `||` operations. The first operand is
+evaluated first. Side note:
+    - If the first operand in `&&` is zero, the second operand is not
+    evaluated.
+    - If the first operand in `||` is non-zero, the second operand is not
+    evaluated.
+- After the conditional statement in the ternary operator, `?:`. The condition
+is evaluated, then the control sequence is reached, then the appropriate
+expression is evaluated depending on the conditions result.
+- The comma separator. The left hand side is evaluated as a `void` expression,
+a sequence point occurs, then the right hand side is evaluated with a return
+type and value.
+- The end of a full expression. A full expression is an expression that is not
+part of another expression. A full expressions is:
+    - An initialiser.
+    - The controlling expression of a selection statement (condition of a
+    conditional).
+    - An expression in an expression statement.
+    - The controlling expression of a `while` or `do` statement.
+    - The three expressions in a `for` statement.
+    - An expression in a `return` statement.
+    
+In between sequence points, a value shall only be modified once, and all other
+accesses to that value must be to determine the evaluation of an expression.
+
+The expression `arr[i] = i++` is attempts to modify the value `i` twice between
+sequence points. As a result the program is operating outside the language
+specification, and therefore is labeled _undefined behaviour_.
+
+Sources:
+- The C89 Draft, [port70](https://port70.net/~nsz/c/c89/c89-draft.html)
