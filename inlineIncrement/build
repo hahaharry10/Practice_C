@@ -19,6 +19,8 @@ if contains $params $# "-h"; then
     echo "Usage: ./build [-clean-asm] [-clean] file_basename"
     echo -e "\t-clean-asm: Remove all assembly files."
     echo -e "\t-clean: Remove all assmbly and executable files."
+    echo -e "\t-gcc: Use GNU compiler (LLVM is default)."
+    echo -e "\t-std=c99: Use C99 standard (C89 is default)."
     exit 0
 fi
 
@@ -29,6 +31,8 @@ compileOnly=0
 assemblyOnly=0
 compileNeeded=1
 
+standard="c89"
+cc="clang"
 for ((i = 0; i < $#; i++ )); do
     case ${params[i]} in 
         -clean)
@@ -44,6 +48,12 @@ for ((i = 0; i < $#; i++ )); do
             done
             rm main.asm
             exit 0
+            ;;
+        -std=c99)
+            standard="c99"
+            ;;
+        -gcc)
+            cc="gcc"
             ;;
         *)
             if [[ ${params[i]:0:1} == "-" ]]; then
@@ -61,9 +71,9 @@ fi
 
 obj_files=""
 for (( i = 0; i < $execut_num; i++ )); do
-    flags="-std=c89 -Wall -Wextra -pedantic"
-    echo "clang $flags -c -o ${executables[i]}.o ${executables[i]}.c"
-    clang $flags -c -o "${executables[i]}.o" "${executables[i]}.c"
+    flags="-std=$standard -Wall -Wextra -pedantic"
+    echo "$cc $flags -c -o ${executables[i]}.o ${executables[i]}.c"
+    $cc $flags -c -o "${executables[i]}.o" "${executables[i]}.c"
     echo "llvm-objdump -d -h "${executables[i]}.o" > ${executables[i]}.asm"
     llvm-objdump -d -h "${executables[i]}.o" > "${executables[i]}.asm"
 done
@@ -72,8 +82,8 @@ for (( i = 0; i < $execut_num; i++ )); do
     obj_files="$obj_files ${executables[i]}.o"
 done
 
-echo "clang $flags -o main $obj_files"
-clang $flags -o main main.c $obj_files
+echo "$cc $flags -o main $obj_files"
+$cc $flags -o main main.c $obj_files
 echo "llvm-objdump -d -h main > main.asm"
 llvm-objdump -d -h main > main.asm
 

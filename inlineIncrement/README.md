@@ -63,6 +63,8 @@ $ ./build -h
 Usage: ./build [-clean-asm] [-clean] file_basename
 	-clean-asm: Remove all assembly files.
 	-clean: Remove all assmbly and executable files.
+	-gcc: Use GNU compiler (LLVM is default).
+	-std=c99: Use C99 standard (C89 is default).
 ```
 
 Where `file_basename` is the file name with the file extension omitted.
@@ -459,7 +461,13 @@ lot of ignorance. But hopefully there will be a lot of learning from it. So
 without further ado, let's start by learning about the difference between
 undefined behaviour and unspecified behaviour.
 
-# Undefined vs Unspecified Behaviour
+# Undefined Behaviour
+To understand why `arr[var] = var++` and `arr[var++] = var` is undefined
+behaviour we must first understand two concepts:
+- Undefined Behaviour and Unspecified Behaviour
+- Sequence Points
+
+## Undefined Behaviour vs Unspecified Behaviour
 The [ISO C standard](https://www.iso.org/obp/ui/en/#iso:std:iso-iec:9899:ed-5:v1:en:term:3.30)
 defines undefined behaviour as the following:
 
@@ -469,7 +477,9 @@ defines undefined behaviour as the following:
 For context the ISO defines the standard C behaviour, all the standards - c89,
 c99, c11, etc. - specify behaviours of the language. Undefined behaviour is
 therefore behaviour that does not have to conform to the rules, and therefore
-can behave in any way, no matter how dangerous.
+can behave in any way, no matter how dangerous. Furthermore due to the lack of
+regulation in undefined behaviour, different compilers and systems may behave
+differently.
 
 The [ISO C standard](https://www.iso.org/obp/ui/en/#iso:std:iso-iec:9899:ed-5:v1:en:term:3.30)
 defines unspecified behaviour as the following:
@@ -515,12 +525,63 @@ part of another expression. A full expressions is:
     - The three expressions in a `for` statement.
     - An expression in a `return` statement.
     
-In between sequence points, a value shall only be modified once, and all other
-accesses to that value must be to determine the evaluation of an expression.
-
-The expression `arr[i] = i++` is attempts to modify the value `i` twice between
-sequence points. As a result the program is operating outside the language
-specification, and therefore is labeled _undefined behaviour_.
+In between sequence points, a value shall only be modified once by the
+evaluation of an expression, and all other accesses to that value must be used
+to determine the result of that expression. More simply, in a statement a value
+can be modified once and any other accesses to that variable must be for the
+purpose of evaluating that expression.
 
 Sources:
 - The C89 Draft, [port70](https://port70.net/~nsz/c/c89/c89-draft.html)
+
+## Why the Inline Code is Undefined
+Look at the two statements:
+```
+arr[var++] = var;
+arr[var] = var++;
+```
+
+The standard specifies that sequence points are placed after a full expression.
+In this case both line of code is an expression and does not contain a sequence
+point until the end of the statement. This means the statement is operating
+between sequence points. Although the variable `var` is being modified only
+once, `var` is also being read to determine the index of `arr` to access, which
+breaks the rule that all accesses of a mofified variable must be part of the
+expression of which the variables value is determined. Therefore the code
+is not working within the standard and is by definition of undefined behaviour.
+
+Although the idea of undefined behaviour is considered scary, in this situation
+the most probable evaluation of the expression is one of the following:
+- `arr[var] = var; var++;`
+- `arr[var+1] = var; var++;`
+- `arr[var] = var+1; var++;`
+
+This is not scary, the behaviour still varies between compilers and machines,
+furthermore there is no guarrentee that the memory address being
+unintentionally modified is not needed else where.
+
+### Using Different Compilers:
+If we look at the usage of [build](./build) (see
+[here](./README.md#compilation)) we see that we are able to compile with the
+C99 standard and with the GNU compiler, `gcc`. This subsection discusses the
+execution of the code with these variations.
+
+Compiling with different standards produce the same output on both compilers,
+there may be different code being produced but that is beyond the scope of this
+section.
+
+The array assignments for the different compilers are summerised below:
+|Source File|LLVM Behaviour|GNU Behaviour|
+|:----------|:------------:|:-----------:|
+|[standardWay.c](./standardWay.c)| All correct | All correct |
+|[inlineWay.c](./inlineWay.c)| Correct | All incorrect |
+|[incorrectWay.c](./incorrectWay.c)| All incorrect | All incorrect apart from 
+`arr[0]`|
+
+This shows the unpredictability of undefined behaviour, and the importance of
+testing, you may have code running fine on your machine, but as soon as a
+different compiler is being used, results may be vastly different.
+
+
+
+
