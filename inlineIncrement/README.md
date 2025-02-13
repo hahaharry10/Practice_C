@@ -7,9 +7,9 @@ The three methods are:
 ```C
 int arr[10];
 while( i < 10 ) {
-    arr[i] = i; i++; // The standard way.
-    arr[i++] = i; // The inline way.
-    arr[i] = i++; // The incorrect way.
+    arr[i] = i; i++; // The correct way.
+    arr[i++] = i; // The LHS increment way.
+    arr[i] = i++; // The RHS increment way.
 }
 ```
 
@@ -37,9 +37,13 @@ All source files (obviously) have the `.c` file extension, and all assembly
 files have the `.s` file extension, and the related files have the same name.
 The names match the code snippets under the [aim](#aim). The source files are
 called:
-- [standardWay.c](./standardWay.c)
-- [inlineWay.c](./inlineWay.c)
-- [incorrectWay.c](./incorrectWay.c)
+- [correctWay.c](./correctWay.c)
+    - The only correct method.
+- [LHSincrement.c](./LHSincrement.c)
+    - The increment is on the left hand side of the assignment.
+- [RHSincrement.c](./RHSincrement.c)
+    - The increment is on the right hand side of the assignment.
+
 
 ### Admission of Ignorance
 Before writing the code, I made initial guesses on which methods will be
@@ -96,7 +100,7 @@ of the concepts concerning this investigation.
 To understand the difference in implementation of the different methods, we
 must first understand a little about assembly. This section will provide a
 brief explanation on the assembly implementation of
-[standardWay.c](./standardWay.c) (it is useful to learn and thoroughly
+[correctWay.c](./correctWay.c) (it is useful to learn and thoroughly
 understand this source code).
 
 To follow the assembly you can either look at
@@ -455,7 +459,7 @@ statement `arr[i] = i++;` run as the following:
 3. Increment `i`.
 
 But apparently not. Apparently this is undefined behaviour. Apparently both
-[inlineWay.c](./inlineWay.c) and [incorrectWay.c](./incorrectWay.c) are
+[LHSincrement.c](./LHSincrement.c) and [RHSincrement.c](./RHSincrement.c) are
 undefined behaviour. So as always this inestigation started off with a whole
 lot of ignorance. But hopefully there will be a lot of learning from it. So
 without further ado, let's start by learning about the difference between
@@ -573,10 +577,11 @@ section.
 The array assignments for the different compilers are summerised below:
 |Source File|LLVM Behaviour|GNU Behaviour|
 |:----------|:------------:|:-----------:|
-|[standardWay.c](./standardWay.c)| All correct | All correct |
-|[inlineWay.c](./inlineWay.c)| Correct | All incorrect |
-|[incorrectWay.c](./incorrectWay.c)| All incorrect | All incorrect apart from `arr[0]`|
+|[correctWay.c](./correctWay.c)| All correct | All correct |
+|[LHSincrement.c](./LHSincrement.c)| Correct | All incorrect |
+|[RHSincrement.c](./RHSincrement.c)| All incorrect | All incorrect apart from `arr[0]`|
 
+This is a clear example displaying how code execution varies between compiler 
 This shows the unpredictability of undefined behaviour, and the importance of
 testing, you may have code running fine on your machine, but as soon as a
 different compiler is being used, results may be vastly different.
