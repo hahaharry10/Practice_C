@@ -18,9 +18,19 @@ correct way, and understand the differnce in execution time between the three
 methods, and understand why the LHS and RHS increment ways result in undefined
 behaviour.
 
-# File structure
+# Preamble
+It may not be the right way to write a document like this, but the document
+will be written and is intended to be read in chronological order. The
+subsequent sections may assume knowledge from the previous sections. So feel
+free to skip sections, but you may have to read the preceeding sections anyway.
+
+Disclaimer: I am learning as I write the document, and try correct all my
+mistakes but I may miss some. Please contact me or create an issue regarding
+any mistakes.
+
+## File structure
 All source files (obviously) have the `.c` file extension, and all assembly
-files have the `.s` file extension, and the related files have the same name.
+files have the `.asm` file extension, and the related files have the same name.
 The names match the code snippets under the [aim](#aim). The source files are
 called:
 - [correctWay.c](./correctWay.c)
@@ -34,7 +44,21 @@ Both the LHS and RHS increments may be grouped under the term inline method, or
 inline way. This is because the increment occurs inline with the array
 assignment.
 
-### Admission of Ignorance
+## Compilation
+The [build](./build) bash script is used to compile and produce the assembly
+code. The usage is found with:
+```
+$ ./build -h
+Usage: ./build [-clean-asm] [-clean] file_basename
+	-clean-asm: Remove all assembly files.
+	-clean: Remove all assmbly and executable files.
+	-gcc: Use GNU compiler (LLVM is default).
+	-std=c99: Use C99 standard (C89 is default).
+```
+
+Where `file_basename` is the file name with the file extension omitted.
+
+## Admission of Ignorance
 Before writing this document I initially presumed that writing the assignment
 and the increment in the same statement was a valid piece of code, however I
 was wrong. Turns out having a variable being modified and accessed outside of
@@ -53,42 +77,6 @@ The reason for this is because I was using the LLVM compiler, which compiles
 [LHSincrement.c](./LHSincrement.c) to executes as intended. However upon
 learning that it is actually undefined behaviour I changed the file names to
 match this.
-
-# Compilation
-The [build](./build) bash script is used to compile and produce the assembly
-code. The usage is found with:
-```
-$ ./build -h
-Usage: ./build [-clean-asm] [-clean] file_basename
-	-clean-asm: Remove all assembly files.
-	-clean: Remove all assmbly and executable files.
-	-gcc: Use GNU compiler (LLVM is default).
-	-std=c99: Use C99 standard (C89 is default).
-```
-
-Where `file_basename` is the file name with the file extension omitted.
-
-# Document Structure
-It may not be the right way to write a document like this, but the document
-will be written and is intended to be read in chronological order. The
-subsequent sections may assume knowledge from the previous sections. So feel
-free to skip sections, but you may have to read the preceeding sections anyway.
-
-# Preamble
-I am running on an aarch 64 machine, so all my this information will rely on
-the following resources:
-- Aarch64 Procedure Call Standard
-(https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst)
-- Learn the architecture - A64 Instruction Set Architecture
-(https://developer.arm.com/documentation/102374/0102)
-- ARM Compiler toolchain Using the Assembler
-(https://developer.arm.com/documentation/dui0473/c)
-
-Also I used ChatGPT to help me with wording some concepts.
-
-When writing this document I am in the early stages of learning and
-understanding assembly language so I will strive to produce a clear explanation
-of the concepts concerning this investigation.
 
 # Investigation:
 ## Brief Lesson on Assembly
@@ -271,6 +259,14 @@ Now we should have somewhat of an understanding on the correlation between C
 code and the assembly. Especially we should be able to identify the assembly
 implementations of the key parts of the C code (assignment and increment).
 Being familiar with these will help with the next sections.
+
+### Sources:
+- Aarch64 Procedure Call Standard,
+https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst
+- Learn the architecture - A64 Instruction Set Architecture,
+https://developer.arm.com/documentation/102374/0102
+- ARM Compiler toolchain Using the Assembler,
+https://developer.arm.com/documentation/dui0473/c
 
 ## Running `main`
 If you run main with:
