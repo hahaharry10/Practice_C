@@ -13,24 +13,10 @@ while( i < 10 ) {
 }
 ```
 
-We are going to look at the different assembly code to these applcations
-for the following aims...
-- The standard way:
-    - Understand assembly implementations of:
-        1) array indexing (`arr[i]`)
-        2) incrementing (`i++`)
-    - Understand the order in which an address is retrieved and assigned to.
-- The inline way:
-    - Understand the order in which the address is retrieved, assigned to, and
-    incremented.
-- The incorrect way:
-    - At what point does the incrementation happen.
-
-If i'm honest I can pretty much guess the answer to the abstract implementation
-, but I do not know specifically the assembly commands, and structuring. From
-learning LLVM IR I understand that the memory address is found, stored into a
-register, then the value being assigned is loaded (either direct or immediate
-addressed) and then the value is assigned.
+By the end of the document, you will understand the assembly generated from the
+correct way, and understand the differnce in execution time between the three
+methods, and understand why the LHS and RHS increment ways result in undefined
+behaviour.
 
 # File structure
 All source files (obviously) have the `.c` file extension, and all assembly
@@ -44,20 +30,29 @@ called:
 - [RHSincrement.c](./RHSincrement.c)
     - The increment is on the right hand side of the assignment.
 
+Both the LHS and RHS increments may be grouped under the term inline method, or
+inline way. This is because the increment occurs inline with the array
+assignment.
 
 ### Admission of Ignorance
-Before writing the code, I made initial guesses on which methods will be
-correct and incorrect. I incorrectly guessed the following:
-```
-arr[i] = i++; // Was the correct way.
-arr[i++] = i; // Was the incorrect way.
-```
-And named the files accordingly. When I wrote the tests I realised I was wrong.
-I initially thought the memory was accessed/ loaded in chronological order, but
-this seems not the case.
+Before writing this document I initially presumed that writing the assignment
+and the increment in the same statement was a valid piece of code, however I
+was wrong. Turns out having a variable being modified and accessed outside of
+the expression determining the new value is undefined behaviour (see
+[undefined behaviour](./README.md#undefined-behaviour)).
 
-I have changed the names of the files to correctly identify the correct (inline
-) and incorrect method.
+I wrote a substantial amount until I realised this so if there are any
+inconsistencies then the original file basenames were:
+|Current Basename|Original Basename|
+|:--------------:|:---------------:|
+|correctWay|standardWay|
+|LHSincrement|inlineWay|
+|RHSincrement|incorrectWay|
+
+The reason for this is because I was using the LLVM compiler, which compiles
+[LHSincrement.c](./LHSincrement.c) to executes as intended. However upon
+learning that it is actually undefined behaviour I changed the file names to
+match this.
 
 # Compilation
 The [build](./build) bash script is used to compile and produce the assembly
@@ -104,7 +99,7 @@ brief explanation on the assembly implementation of
 understand this source code).
 
 To follow the assembly you can either look at
-[standardWay.asm](./standardWay.asm) or to look at [main.c](./main.c) and find
+[correctWay.asm](./correctWay.asm) or to look at [main.c](./main.c) and find
 the label `0000000000000b4c <standardWay>:`.
 
 ### Calling the function:
@@ -166,8 +161,8 @@ The memory Address will frequently be accessed using 'Pre-indexed addressing'
 which is in the form `[addr, op2]`, which references the address `addr+op2`
 (you will see this when accessing stack memory).
 
-### standardWay.asm
-Take a look at [standardWay.asm](./standardWay.asm). I am going to explain the
+### correctWay.asm
+Take a look at [correctWay.asm](./correctWay.asm). I am going to explain the
 instructions in chunks, but in each code snippets, the comments (prepended with
 `;`) will give a brief desripion of the line.
 
@@ -314,17 +309,17 @@ the incorrect way is 400% quicker.
 - Having two separate statements are quicker than incrementing upon memory
 access.
 
-## Standard vs Inline:
+## Standard vs LHSincrement:
 To start looking where the difference in execution time comes from, let's look
-at the difference in the assembly. Look at [standardWay.asm](./standardWay.asm)
-and [inlineWay.asm](./inlineWay.asm). As the function parameters,
+at the difference in the assembly. Look at [correctWay.asm](./correctWay.asm)
+and [LHSincrement.asm](./LHSincrement.asm). As the function parameters,
 initialisations, and `while` conditions are identical, most of the assembly is
 the same, apart from the following:
 
 <table>
     <tr>
-        <th><a href=standardWay.asm>standardWay.asm</a></th>
-        <th><a href=inlineWay.asm>inlineWay.asm</a></th>
+        <th><a href=correctWay.asm>correctWay.asm</a></th>
+        <th><a href=LHSincrement.asm>LHSincrement.asm</a></th>
     </tr>
     <tr>
         <td>
@@ -351,13 +346,13 @@ Reminder: The registers are assigned as follows:
 - `x9`: The value of `arr`.
 - `x10`: the value of `i` casted to 64-bits.
 
-[inlineWay.asm](./inlineWay.asm) retrieves the least significant 32 bits of the
-64-bit word (i.e. casts the now 64-bit value back to 32 bits and stores it in
-`w11`), increments the value by one, and stores the value back into the stack
-(updating `i`). Finally the original value of `i` is assigned to the
+[LHSincrement.asm](./LHSincrement.asm) retrieves the least significant 32 bits
+of the 64-bit word (i.e. casts the now 64-bit value back to 32 bits and stores
+it in `w11`), increments the value by one, and stores the value back into the
+stack (updating `i`). Finally the original value of `i` is assigned to the
 appropriate location of `arr`.
 
-[standardWay.asm](./standardWay.asm) stores the value of `i` into the
+[correctWay.asm](./correctWay.asm) stores the value of `i` into the
 appropriate location of `arr`, loads `i` into `w8`, increments it by one and
 then stores it back onto the stack (updating `i`).
 
@@ -366,11 +361,11 @@ My first questions are:
 1. Why are there redundant branching?
     - Instructions `28` and `c` are unnecessary.
     - Answer: [Basic Blocks](./README.md#basic-blocks)
-2. In [standardWay.asm](./standardWay.asm) Why load `i` into `w8` again?
+2. In [correctWay.asm](./correctWay.asm) Why load `i` into `w8` again?
     - Probably done by the compiler automatically as a result of splitting the
     code into basic blocks.
-3. Why is [standardWay.asm](./standardWay.asm) quicker than than
-[inlineWay.asm](./inlineWay.asm) when the standard way contains more
+3. Why is [correctWay.asm](./correctWay.asm) quicker than than
+[LHSincrement.asm](./LHSincrement.asm) when the standard way contains more
 stack memory operations?
     - Isn't accessing the stack much slower than accessing registers?
     - The standard way accesses the stack thrice (two `str` operations
@@ -399,7 +394,7 @@ execution of instructions. In order for instructions to be parallelised, they
 must have no data dependencies (the instruction must not depend on data being
 modified by the previous instructions).
 
-First look at the two instructions in [standardWay.asm](./standardWay.asm):
+First look at the two instructions in [correctWay.asm](./correctWay.asm):
 ```asm
 38: b82a7928     	str	w8, [x9, x10, lsl #2]
 3c: b94007e8     	ldr	w8, [sp, #0x4]
@@ -414,7 +409,7 @@ on the value of register `w8` which is being modified by the previous
 instruction, therefore they must wait for the previous instruciton to execute
 completely.
 
-Now look at the instructions in [inlineWay.asm](./inlineWay.asm):
+Now look at the instructions in [LHSincrement.asm](./LHSincrement.asm):
 ```asm
 38: 2a0a03eb     	mov	w11, w10
 3c: 1100056b     	add	w11, w11, #0x1
@@ -585,7 +580,5 @@ This is a clear example displaying how code execution varies between compiler
 This shows the unpredictability of undefined behaviour, and the importance of
 testing, you may have code running fine on your machine, but as soon as a
 different compiler is being used, results may be vastly different.
-
-
 
 
