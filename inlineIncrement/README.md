@@ -18,6 +18,35 @@ correct way, and understand the differnce in execution time between the three
 methods, and understand why the LHS and RHS increment ways result in undefined
 behaviour.
 
+# Contents
+- [Aim](#aim)
+- [Contents](#contents)
+- [Preamble](#preamble)
+    - [File Structure](#file-structure)
+    - [Compilation](#compilation)
+    - [Admission of Ignorance](#admission-of-ignorance)
+- [Understanding The Assembly](#understanding-the-assembly)
+    - [Brief Lesson on Assembly](#brief-lesson-on-assembly)
+        - [Function Calls](#function-calls)
+        - [Registers](#registers)
+        - [The Stack](#the-stack)
+        - [Addressing](#addressing)
+    - [Assembly for the Correct Way](#assembly-for-the-correct-way)
+        - [Lessons](#lessons)
+        - [Final Remarks](#final-remarks)
+    - [Sources](#sources)
+- [Running `main`](#running-main)
+- [Correct vs LHSincrement](#correct-vs-lhsincrement)
+    - [Initial Questions](#initial-questions)
+    - [Basic Blocks](#basic-blocks)
+    - [Instruction Level Parallelism (ILP)](#instruction-level-parallelism-ilp)
+- [The Incorrect Way](#the-incorrect-way)
+- [Undefined Behaviour](#undefined-behaviour)
+    - [Undefined Behaviour vs Unspecified Behaviour](#undefined-behaviour-vs-unspecified-behaviour)
+    - [Sequence Points](#sequence-points)
+    - [Why the Inline Code is Undefined](#why-the-inline-code-is-undefined)
+        - [Using Different Compilers](#using-different-compilers)
+
 # Preamble
 It may not be the right way to write a document like this, but the document
 will be written and is intended to be read in chronological order. The
@@ -28,7 +57,7 @@ Disclaimer: I am learning as I write the document, and try correct all my
 mistakes but I may miss some. Please contact me or create an issue regarding
 any mistakes.
 
-## File structure
+## File Structure
 All source files (obviously) have the `.c` file extension, and all assembly
 files have the `.asm` file extension, and the related files have the same name.
 The names match the code snippets under the [aim](#aim). The source files are
@@ -78,8 +107,7 @@ The reason for this is because I was using the LLVM compiler, which compiles
 learning that it is actually undefined behaviour I changed the file names to
 match this.
 
-# Investigation:
-## Brief Lesson on Assembly
+# Understanding the Assembly
 To understand the difference in implementation of the different methods, we
 must first understand a little about assembly. This section will provide a
 brief explanation on the assembly implementation of
@@ -87,13 +115,16 @@ brief explanation on the assembly implementation of
 understand this source code).
 
 To follow the assembly you can either look at
-[correctWay.asm](./correctWay.asm) or to look at [main.c](./main.c) and find
-the label `0000000000000b4c <standardWay>:`.
+[correctWay.asm](./correctWay.asm) or to look at [main.asm](./main.asm) and
+find the label `0000000000000b4c <correctWay>:`. The code snippets are
+extracted from the individual assembly files, so the instruction labels will be
+different in the snippets to [main.asm](./main.asm).
 
-### Calling the function:
-In assembly there are no function calls, there are no subroutines or function
-calls. But instead there is branching. Branching allows you to skip forward
-(and backward) to another instruction. Branching can be done unconditionally or
+## Brief Lesson on Assembly
+### Function Calls
+In assembly there are no function calls, there are no subroutines or functions.
+But instead there is branching. Branching allows you to skip forward (and
+backward) to another instruction. Branching can be done unconditionally or
 conditionally.
 
 When calling a function in assembly you do not _call_ anything, you instead
@@ -108,7 +139,7 @@ In the function call, the execution flow skips down to the function logic, and
 then when function logic is completed, the flow skips back to the line of
 `main()` immediately after the function code.
 
-### Registers and Function Parameters:
+### Registers
 There are 31 accessible registers (r0-r30), but some of then have special
 functions. These registers can be accessed as a 64 bit register by using `xn`
 or a 32 bit register by using `wn`, where `n` is the register number. The
@@ -149,7 +180,7 @@ The memory Address will frequently be accessed using 'Pre-indexed addressing'
 which is in the form `[addr, op2]`, which references the address `addr+op2`
 (you will see this when accessing stack memory).
 
-### correctWay.asm
+## Assembly for the Correct Way
 Take a look at [correctWay.asm](./correctWay.asm). I am going to explain the
 instructions in chunks, but in each code snippets, the comments (prepended with
 `;`) will give a brief desripion of the line.
@@ -168,13 +199,13 @@ the address of variable `i`, from here onwards the comments will use the name
 .
 
 ```asm
-b58: 14000001     	b	0xb5c <standardWay+0x10>                ; Jump to the next instruction
+b58: 14000001     	b	0xb5c <correctWay+0x10>                 ; Jump to the next instruction
 b5c: b94007e8     	ldr	w8, [sp, #0x4]                          ; w8 = i
 b60: 5290d409     	mov	w9, #0x86a0                             ; w9 = 0x86a0
 b64: 72a00029     	movk	w9, #0x1, lsl #16                   ; w9 = w9 OR (0x1 << 16)
 b68: 6b090108     	subs	w8, w8, w9                          ; w8 = w8 - w9
 b6c: 1a9fb7e8     	cset	w8, ge                              ; w8 = (w8 >= 0)
-b70: 37000148     	tbnz	w8, #0x0, 0xb98 <standardWay+0x4c>
+b70: 37000148     	tbnz	w8, #0x0, 0xb98 <correctWay+0x4c>
 ```
 
 TSA is the logic for the condition in the while loop. It gets the value of
@@ -192,7 +223,7 @@ bits). Therefore we use 2 statements:
 the current value of `w9` (`0x86a0 OR 0x10000 = 0x186a0 = 0d100000`).
 
 ```asm
-b74: 14000001     	b	0xb78 <standardWay+0x2c>    ; Branch to the next instruction.
+b74: 14000001     	b	0xb78 <correctWay+0x2c>     ; Branch to the next instruction.
 b78: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
 b7c: f94007e9     	ldr	x9, [sp, #0x8]              ; x9 = arr
 b80: b98007ea     	ldrsw	x10, [sp, #0x4]         ; x10 = (64bit) w8
@@ -200,7 +231,7 @@ b84: b82a7928     	str	w8, [x9, x10, lsl #2]       ; x9[x10<<2] = w8
 b88: b94007e8     	ldr	w8, [sp, #0x4]              ; w8 = i
 b8c: 11000508     	add	w8, w8, #0x1                ; w8 = w8 + 1
 b90: b90007e8     	str	w8, [sp, #0x4]              ; i = w8
-b94: 17fffff2     	b	0xb5c <standardWay+0x10>
+b94: 17fffff2     	b	0xb5c <correctWay+0x10>
 ```
 
 Before we delve into TSA, lets remind ourselves about the parameter stored in
@@ -260,7 +291,7 @@ code and the assembly. Especially we should be able to identify the assembly
 implementations of the key parts of the C code (assignment and increment).
 Being familiar with these will help with the next sections.
 
-### Sources:
+## Sources:
 - Aarch64 Procedure Call Standard,
 https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst
 - Learn the architecture - A64 Instruction Set Architecture,
@@ -268,7 +299,7 @@ https://developer.arm.com/documentation/102374/0102
 - ARM Compiler toolchain Using the Assembler,
 https://developer.arm.com/documentation/dui0473/c
 
-## Running `main`
+# Running `main`
 If you run main with:
 ```
 $ ./main 2>log.txt
@@ -276,17 +307,17 @@ $ ./main 2>log.txt
 
 You get an output similar to (the times may change):
 ```
-The Standard Way:
+The Correct Way:
 	PASSED: arr[i] = i
-Time: 94
+Time: 165
 
-The inline Way:
+arr[var++] = var:
 	PASSED: arr[i] = i
-Time: 353
+Time: 605
 
-The incorrect Way:
+arr[var] = var++:
 	FAILED: 99999 index-value pairs do not match.
-Time: 114
+Time: 180
 ```
 After running 10 times we get the following average times:
 |Algorithm:|Processor Time:|
@@ -300,12 +331,12 @@ differences in processing costs is minute.
 
 Initial Observations:
 - The incorrect way is the fastest and the inline way is the slowest.
-- Even though both the incorrect and inline way have an inlined incrementation,
-the incorrect way is 400% quicker.
+- Even though both the inline ways have an inlined incrementation, the RHS
+inline way is 400% quicker than the LHS inline way.
 - Having two separate statements are quicker than incrementing upon memory
 access.
 
-## Standard vs LHSincrement:
+# Correct vs LHSincrement:
 To start looking where the difference in execution time comes from, let's look
 at the difference in the assembly. Look at [correctWay.asm](./correctWay.asm)
 and [LHSincrement.asm](./LHSincrement.asm). As the function parameters,
@@ -352,7 +383,7 @@ appropriate location of `arr`.
 appropriate location of `arr`, loads `i` into `w8`, increments it by one and
 then stores it back onto the stack (updating `i`).
 
-### Initial Questions
+## Initial Questions
 My first questions are:
 1. Why are there redundant branching?
     - Instructions `28` and `c` are unnecessary.
@@ -370,7 +401,7 @@ stack memory operations?
     - Answer:
     [Instruction Level Parallelism](./README.md#instruction-level-parallelism-pll)
 
-### Basic Blocks
+## Basic Blocks
 A basic block is a straight line block of code with no branches in except at
 the entry, and no branches out except at the exit. The compiler splits the code
 into basic blocks and uses branching to control flow between the blocks. The
@@ -384,7 +415,7 @@ Sources:
 [wikipedia](https://en.wikipedia.org/wiki/Control-flow_graph)
 (https://en.wikipedia.org/wiki/Control-flow_graph) 
 
-### Instruction Level Parallelism (ILP)
+## Instruction Level Parallelism (ILP)
 Instruction Level Parallelism (ILP) describes the processors concurrent
 execution of instructions. In order for instructions to be parallelised, they
 must have no data dependencies (the instruction must not depend on data being
@@ -437,7 +468,7 @@ Sources:
 (https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md)
 - Apple Silicon CPU Optimization Guide
 
-## The Incorrect Way:
+# The Incorrect Way:
 Before this investigation I had never encountered or written a statement that
 included both a variables access and increment. Therefor I did not know which
 of the below lines of code was correct. As confessed
