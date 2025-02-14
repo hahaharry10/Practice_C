@@ -1,6 +1,9 @@
 /*
  * Investigate whether the pre-increment operator introduces a
  * sequence point.
+ *
+ * I started looking at this in response to the following post:
+ *      https://www.linkedin.com/pulse/sequence-points-deep-dive-inner-workings-c-ali-el-bana-h5x3f/
  */
 
 
