@@ -1,0 +1,25 @@
+#!/bin/bash
+
+params=("$@")
+standard="c89"
+cc="clang"
+for ((i = 0; i < $#; i++ )); do
+    case ${params[i]} in 
+        -std=c99)
+            standard="c99"
+            ;;
+        -gcc)
+            cc="gcc"
+            ;;
+        -h)
+            echo "Usage: ./build [-gcc] [-std=c99] file_basename"
+            echo -e "\t-gcc: Use GNU compiler (LLVM is default)."
+            echo -e "\t-std=c99: Use C99 standard (C89 is default)."
+            exit 0
+    esac
+done
+
+flags="-pedantic -Wall -Wextra -std=$standard"
+file=${params[$#-1]}
+echo "$cc $flags -o $file $file.c"
+$cc $flags -o $file "$file.c"
