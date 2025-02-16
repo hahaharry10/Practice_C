@@ -1,6 +1,19 @@
 /*
  * Investigate whether the pre-increment operator introduces a
  * sequence point.
+ *
+ * I read online that in C and C++, the pre-increment operator
+ * introduces a sequence point. However the standard (C89, C99,
+ * C11, C20) shows otherwise. Running on my Mac terminal this
+ * code seems to be consistant accross compilers, however on
+ * my Linux virtual machine it is undefined and the execution
+ * is different with clang than it is with gcc.
+ *
+ * This means that the behaviour is truly undefined.
+ *
+ * NOTE: This ONLY tests C behaviour. There is no conclusion
+ * in regards to C++.
+ *
  */
 
 
