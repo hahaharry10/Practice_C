@@ -1,9 +1,6 @@
 /*
  * Investigate whether the pre-increment operator introduces a
  * sequence point.
- *
- * I started looking at this in response to the following post:
- *      https://www.linkedin.com/pulse/sequence-points-deep-dive-inner-workings-c-ali-el-bana-h5x3f/
  */
 
 
@@ -23,8 +20,8 @@ int main(void) {
     i = 0;
     j = 0;
     while( i < ARRAY_SIZE || j < ARRAY_SIZE ) {
-        x[i] = i++;
-        a[j++] = j;
+        x[i] = ++i;
+        a[++j] = j;
     }
 
     for( i = 0; i < ARRAY_SIZE+1; i++ ) {
