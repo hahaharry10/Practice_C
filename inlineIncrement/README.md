@@ -468,24 +468,12 @@ Sources:
 (https://github.com/ocxtal/insn_bench_aarch64/blob/master/results/apple_m1_firestorm.md)
 - Apple Silicon CPU Optimization Guide
 
-# The Incorrect Way:
-Before this investigation I had never encountered or written a statement that
-included both a variables access and increment. Therefor I did not know which
-of the below lines of code was correct. As confessed
-[earlier](./README.md#admission-of-ignorance), I initially guessed wrong.
-
-My reasoning for this error was that C code is executed as it is read, so the
-statement `arr[i] = i++;` run as the following:
-1. Retrieve address `arr[i]`
-2. Access `i`
-3. Increment `i`.
-
-But apparently not. Apparently this is undefined behaviour. Apparently both
-[LHSincrement.c](./LHSincrement.c) and [RHSincrement.c](./RHSincrement.c) are
-undefined behaviour. So as always this inestigation started off with a whole
-lot of ignorance. But hopefully there will be a lot of learning from it. So
-without further ado, let's start by learning about the difference between
-undefined behaviour and unspecified behaviour.
+# RHS Inline Way:
+We have looked at [correctWay.asm](./correctWay.asm) and
+[RHSincrement.asm](./RHSincrement.asm) (the two source codes that execute
+correctly) and provided possible explanations into the differences in execution
+times. Now we need to discuss why [RHSincrement.asm](./RHSincrement.asm) is the
+quickest out of the three.
 
 # Undefined Behaviour
 To understand why `arr[var] = var++` and `arr[var++] = var` is undefined
@@ -557,6 +545,9 @@ to determine the result of that expression. More simply, in a statement a value
 can be modified once and any other accesses to that variable must be for the
 purpose of evaluating that expression.
 
+Some sources seem to describe pre-increment as inducing a sequence point, but
+in the C89 standard, it explicitly states `i = ++i + 1` as undefined.
+
 Sources:
 - The C89 Draft, [port70](https://port70.net/~nsz/c/c89/c89-draft.html)
 
@@ -603,7 +594,7 @@ The array assignments for the different compilers are summerised below:
 |[LHSincrement.c](./LHSincrement.c)| Correct | All incorrect |
 |[RHSincrement.c](./RHSincrement.c)| All incorrect | All incorrect apart from `arr[0]`|
 
-This is a clear example displaying how code execution varies between compiler 
+This is a clear example displaying how code execution varies between compiler. 
 This shows the unpredictability of undefined behaviour, and the importance of
 testing, you may have code running fine on your machine, but as soon as a
 different compiler is being used, results may be vastly different.
