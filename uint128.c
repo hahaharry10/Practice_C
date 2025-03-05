@@ -29,15 +29,18 @@ int WRITE_TO_UINT128(uint128_t uint128, unsigned long* parts, int numOfParts) {
     return EXIT_SUCCESS;
 }
 
-void _strcpy( char* pointer, char* string, int strlen) {
+static void _strcpy( char* pointer, char* string, int strlen) {
     int i;
     for( i = 0; i < strlen; i++ )
         pointer[i] = string[i];
 }
 
 /* Take in a C-String representing the decimal number, and double the value */
-void doubleDecimal(char* number) {
+static void doubleDecimal(char* number) {
     int i, nullPosition;
+    enum BOOL {FALSE, TRUE};
+    enum BOOL carry;
+
 
     for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
         if( number[i] == '\0' ) {
@@ -46,32 +49,33 @@ void doubleDecimal(char* number) {
         }
     }
 
-    /* Double all the digits */
-    for( i = nullPosition-1; i >= 0; i-- )
-        *(number+i) = ((number[i] - '0') * 2) + '0';
+    carry = FALSE;
+    for( i = nullPosition-1; i >= 0; i-- ) {
+        number[i] = ((number[i] - '0') * 2) + '0';
 
-    /* if digit i has overflow, increment digit i-1 */
-    for( i = 0; i <= nullPosition; i++ ) {
-        while( number[i] > '9' && i != 0 ) {
-            number[i-1]++;
-            number[i] -= 10;
+        if( carry ) {
+            number[i] += 1;
+            carry = FALSE;
         }
-        if( number[i] > '9' && i == 0 ) {
-            /* Shift all the numbers down one and append MSB */ 
-            for( i = nullPosition; i >= 0; i-- )
-                number[i+1] = number[i];
 
-            /* Find the new MSB */
-            number[0] = '0';
-            while( number[1] > '9' ) {
-                number[1] -= 10;
-                number[0]++;
-            }
+        if( number[i] > '9' ) {
+            number[i] -= 10;
+            carry = TRUE;
         }
     }
+
+    /* If first digit is overflow */
+    if( carry ) {
+        /* Shift all digits down */
+        for( i = nullPosition; i >= 0; i-- )
+            number[i+1] = number[i];
+
+        number[0] = '0' + carry;
+    }
+    
 }
 
-void addDecimalBits(char* bit1, char* bit2) {
+static void addDecimalBits(char* bit1, char* bit2) {
     int i, j, lenL, lenS;
     char *larger, *smaller;
 
@@ -129,7 +133,7 @@ void addDecimalBits(char* bit1, char* bit2) {
  * Convert the bits stored in the 128bit integer into an array of bits represented as strings. 
  * The Bits are stored in a bit string in big endian format on both the bit level and the byte level.
  */
-void getBits(uint128_t uint128, char** bitString) {
+static void getBits(uint128_t uint128, char** bitString) {
     int B, b, p, count; /* [B]yte, [b]it, [p]art, count */
     char byte;
     char strByte[2] = "0\0";
@@ -160,7 +164,6 @@ void getBits(uint128_t uint128, char** bitString) {
 
     }
 }
-
 
 void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
     int i, j, offset;
