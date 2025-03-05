@@ -41,20 +41,13 @@ static void doubleDecimal(char* number) {
     enum BOOL {FALSE, TRUE};
     enum BOOL carry;
 
-
-    for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
-        if( number[i] == '\0' ) {
-            nullPosition = i;
-            break;
-        }
-    }
-
     carry = FALSE;
-    for( i = nullPosition-1; i >= 0; i-- ) {
+    i = 0;
+    while( number[i] != '\0' ) {
         number[i] = ((number[i] - '0') * 2) + '0';
 
         if( carry ) {
-            number[i] += 1;
+            number[i]++;
             carry = FALSE;
         }
 
@@ -62,76 +55,93 @@ static void doubleDecimal(char* number) {
             number[i] -= 10;
             carry = TRUE;
         }
+        i++;
     }
 
     /* If first digit is overflow */
     if( carry ) {
-        /* Shift all digits down */
-        for( i = nullPosition; i >= 0; i-- )
-            number[i+1] = number[i];
-
-        number[0] = '0' + carry;
+        number[i] = '1';
+        number[i+1] = '\0';
     }
     
 }
 
+/*
+ * BUG: RUN program and debug function
+ *
+ * NOTE: doubleDecimal() seems correct. May be wrong. But am fairly sure the bug is in addDecimalBits()
+ */
 static void addDecimalBits(char* bit1, char* bit2) {
-    int i, j, lenL, lenS;
-    char *larger, *smaller;
+    enum BOOL {FALSE, TRUE};
+    enum BOOL carry;
 
-    /* Find the length of both bits and assign appropriate variables */
+    /*
+     * TODO: THIS...
+     */
     for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
         if( bit1[i] == '\0' ) {
-            larger = bit2;
-            smaller = bit1;
-            lenS = i+1;
-            for( j = i; i < SIZE_OF_DECIMAL_STRING; j++ ) {
-                if( bit2[j] == '\0' ) {
-                    lenL = j+1;
+            /* Copy remaining digits of bit2 into bit1 */
+            for( j = i; j < SIZE_OF_DECIMAL_STRING; j++ ) {
+                if( bit2[j] == '\0' )
                     break;
+
+                bit1[j] = bit2[j];
+                
+                if( carry ) {
+                    bit1[j]++;
+                    carry = FALSE;
                 }
+
+                if( bit1[j] > '9' ) {
+                    bit1[j] -= 10;
+                    carry = TRUE;
+                }
+
             }
-            break;
+            if( carry ) {
+                bit1[j] = '1';
+                bit1[j+1] = '\0';
+            }
+            return;
         }
         else if( bit2[i] == '\0' ) {
-            larger = bit1;
-            smaller = bit2;
-            lenS = i+1;
-            for( j = i; j < SIZE_OF_DECIMAL_STRING; j++ ) {
-                if( bit1[j] == '\0' ) {
-                    lenL = j+1;
+            for( j = 1; j < SIZE_OF_DECIMAL_STRING; j++ ) {
+                if( !carry ) /* if carry stops */
                     break;
+
+                bit1[j]++;
+                carry = FALSE;
+
+                if( bit1[j] > '9' ) {
+                    bit1[j] -= 10;
+                    carry = TRUE;
                 }
             }
-            break;
+            if( carry ) {
+                bit1[j] = '1';
+                bit1[j+1] = '\0';
+            }
+            return;
         }
-    }
+        else {
+            bit1[i] += bit2[i] - '0';
 
-    /* Pad smaller number with zeros */
-    for( i = lenS-1; i >= 0; i-- )
-        smaller[i+(lenL-lenS)] = smaller[i];
-    for( i = 0; i < lenL-lenS; i++ )
-        smaller[i] = '0';
+            if( carry ) {
+                bit1[i]++;
+                carry = FALSE;
+            }
 
-    /* Add both the bits together */ 
-    for( i = lenL-2; i >= 0; i-- ) {
-        bit1[i] = larger[i] + smaller[i] - '0';
-        if( bit1[i] > '9' && i != 0 ) {
-            bit1[i] -= 10;
-            bit1[i-1]++;
+            if( bit1[i] > '9' ) {
+                bit1[i] -= 10;
+                carry = TRUE;
+            }
         }
-    }
-    if( bit1[0] > '9' ) {
-        for( i = lenL-1; i >= 0; i-- )
-            bit1[i+1] = bit1[i];
-        bit1[1] -= 10;
-        bit1[0] = '1';
     }
 }
 
 /* 
  * Convert the bits stored in the 128bit integer into an array of bits represented as strings. 
- * The Bits are stored in a bit string in big endian format on both the bit level and the byte level.
+ * The Bits are stored in a bit string in big endian format.
  */
 static void getBits(uint128_t uint128, char** bitString) {
     int B, b, p, count; /* [B]yte, [b]it, [p]art, count */
@@ -142,26 +152,38 @@ static void getBits(uint128_t uint128, char** bitString) {
     if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIAN ) {
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
             /* Little Endian: LSB is first */
-            for( B = sizeof(unsigned long)-1; B >= 0; B-- )
+            for( B = sizeof(unsigned long)-1; B >= 0; B-- ) {
                 for( b = 7; b >= 0; b-- ) {
                     byte = *( (char *) (uint128.data + p) + B );
                     strByte[0] = '0' + ( (byte >> b) & 0x01 );
                     _strcpy(bitString[count], strByte, 2);
                     count++;
                 }
+            }
         }
     } else {
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
             /* Big Endian: MSB is first */
-            for( B = 0; B < sizeof(unsigned long); B++ )
+            for( B = 0; B < sizeof(unsigned long); B++ ) {
                 for( b = 7; b >= 0; b-- ) {
                     byte = *( (char *) (uint128.data + p) + B );
                     strByte[0] = '0' + ( (byte >> b) & 0x01 );
                     _strcpy(bitString[count], strByte, 2);
                     count++;
                 }
+            }
         }
 
+    }
+}
+
+static void reverse_string(char *str, int len) {
+    int i;
+    char temp;
+    for( i = 0; i < len/2; i++ ) {
+        temp = str[i];
+        str[i] = str[len-i-1];
+        str[len-i-1] = temp;
     }
 }
 
@@ -175,18 +197,32 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
 
     getBits(uint128, binary);
 
-    for( i = 0; i < NUM_OF_BITS; i++ ) 
+    for( i = 0; i < NUM_OF_BITS; i++ ) {
+        if( binary[i][0] != '1' )
+            continue;
         for( j = i; j < NUM_OF_BITS-1; j++ )
             doubleDecimal(binary[i]);
+    }
 
-    for( i = 1; i < NUM_OF_BITS; i++ )
+    fprintf(stderr, "BINARY:\n");
+    for( i = 0; i < NUM_OF_BITS; i++ ) {
+        fprintf(stderr, "\t%i: %s\n", i, binary[i]);
+    }
+
+    for( i = 1; i < NUM_OF_BITS; i++ ) {
         addDecimalBits(binary[0], binary[i]);
+        for( j = 0; j < NUM_OF_BITS; j++ )
+            fprintf(stderr, "\t%s\n", binary[j]);
+        fprintf(stderr, "\n\n");
+    }
 
     for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
         dest[i] = binary[0][i];
-        if( binary[0][i] == '\0' )
+        if( dest[i] == '\0' )
             break;
     }
+
+    reverse_string(dest, i);
 
     for( i = 0; i < NUM_OF_BITS; i++ )
         free(binary[i]);
