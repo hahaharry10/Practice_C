@@ -66,18 +66,12 @@ static void doubleDecimal(char* number) {
     
 }
 
-/*
- * BUG: RUN program and debug function
- *
- * NOTE: doubleDecimal() seems correct. May be wrong. But am fairly sure the bug is in addDecimalBits()
- */
 static void addDecimalBits(char* bit1, char* bit2) {
+    int i, j;
     enum BOOL {FALSE, TRUE};
     enum BOOL carry;
 
-    /*
-     * TODO: THIS...
-     */
+    carry = FALSE;
     for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
         if( bit1[i] == '\0' ) {
             /* Copy remaining digits of bit2 into bit1 */
@@ -105,7 +99,7 @@ static void addDecimalBits(char* bit1, char* bit2) {
             return;
         }
         else if( bit2[i] == '\0' ) {
-            for( j = 1; j < SIZE_OF_DECIMAL_STRING; j++ ) {
+            for( j = i; j < SIZE_OF_DECIMAL_STRING; j++ ) {
                 if( !carry ) /* if carry stops */
                     break;
 
