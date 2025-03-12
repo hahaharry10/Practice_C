@@ -81,8 +81,10 @@ void testUint128DecimalOutput(void) {
     char* decimalOutput;
     char*** expectedOutput;
     unsigned long **parts;
+    char test5Parts[16] = {0x5A, 0xA3, 0xEA, 0xEC, 0x33, 0x63, 0x16, 0xAA, 0x7A, 0x2B, 0xA0, 0x2B, 0x5C, 0x0F, 0x26, 0x57};
+    char test6Parts[16] = {0x28, 0x9C, 0x4C, 0x68, 0x78, 0xB3, 0xEB, 0x22, 0x8E, 0xC2, 0x65, 0xE2, 0x37, 0xED, 0x48, 0xA9};
 
-    numOfTests = 5;
+    numOfTests = 7;
     numOfSubTests = 2;
 
     decimalOutput = (char *) malloc(SIZE_OF_DECIMAL_STRING);
@@ -94,17 +96,32 @@ void testUint128DecimalOutput(void) {
             expectedOutput[i][j] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
         parts[i] = (unsigned long *) calloc(NUM_OF_PARTS, sizeof(unsigned long));
     }
+
     for( i = 0; i < NUM_OF_PARTS; i++ ) {
         parts[0][i] = 0x0UL - 1;
         parts[1][i] = 0x0UL;
+
         for( j = 0; j < sizeof(unsigned long); j++ )
-            *((char *) (parts[2] + i) + j) = 0x55;
-        if( i == NUM_OF_PARTS-1 ) parts[3][i] = 0x2DUL;
-        else parts[3][i] = 0UL;
-        if( i == 0 ) parts[4][i] = 0x2DUL;
-        else parts[4][i] = 0UL;
+            *((char *) (parts[2] + i) + j) = 0x55UL;
+
+        if( i == NUM_OF_PARTS-1 ) {
+            /* Assign MSB */
+            parts[3][i] = 0x00UL; /* Clear whole variable */
+            *((char *) (parts[3]+i)) = 0x2DUL; /* assign first byte of variable */
+        } else
+            parts[3][i] = 0UL;
+
+        if( i == 0 ) {
+            parts[4][i] = 0x00UL;
+            *((char *) parts[4]) = 0x2DUL;
+        } else
+            parts[4][i] = 0UL;
     }
 
+    for( i = 0; i < 16; i++ ) {
+        *(((char *) parts[5]) + i) = test5Parts[i];
+        *(((char *) parts[6]) + i) = test6Parts[i];
+    }
 
     /* Order of Tests:
      *      sub Test:   Byte Endianness:
@@ -115,8 +132,10 @@ void testUint128DecimalOutput(void) {
      *          0           All 1's
      *          1           All 0's
      *          2           01010101 Repeated.
-     *          3           0x00101101 (0x2D (45)) in (char *) M+16-1
-     *          4           0x00101101 (0x2D (45)) in M+0)
+     *          3           0x00101101 (0x2D (45)) in final part M+0
+     *          4           0x00101101 (0x2D (45)) in first part M+0
+     *          5           Random bit stream 1.
+     *          6           Random bit stream 2.
      */
     for( i = 0; i < numOfSubTests; i++ ) {
         _strcpy(expectedOutput[0][i], "340282366920938463463374607431768211455\0", 40);
@@ -125,11 +144,17 @@ void testUint128DecimalOutput(void) {
     _strcpy(expectedOutput[2][0], "113427455640312821154458202477256070485\0", 40);
     _strcpy(expectedOutput[2][1], "113427455640312821154458202477256070485\0", 40);
 
-    _strcpy(expectedOutput[3][0], "59815259810321214280671317712615505920\0", 39);
-    _strcpy(expectedOutput[3][1], "45\0", 3);
+    _strcpy(expectedOutput[3][0], "45\0", 3);
+    _strcpy(expectedOutput[3][1], "3242591731706757120\0", 20);
 
-    _strcpy(expectedOutput[4][0], "45\0", 3);
-    _strcpy(expectedOutput[4][1], "59815259810321214280671317712615505920\0", 39);
+    _strcpy(expectedOutput[4][0], "830103483316929822720\0", 22);
+    _strcpy(expectedOutput[4][1], "59815259810321214280671317712615505920\0", 38);
+
+    _strcpy(expectedOutput[5][0], "226085001886832636716178716666437315450\0", 40);
+    _strcpy(expectedOutput[5][1], "120481628806180739515898850520859616855\0", 40);
+
+    _strcpy(expectedOutput[6][0], "46417581709420436355110454462853268110\0", 39);
+    _strcpy(expectedOutput[6][1], "53980667881542556330518465821379741865\0", 39);
 
     uint128 = CREATE_UINT128();
 
