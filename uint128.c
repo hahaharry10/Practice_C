@@ -21,9 +21,10 @@ int WRITE_TO_UINT128(uint128_t uint128, unsigned long* parts, int numOfParts) {
     if( numOfParts != NUM_OF_PARTS )
         return INCOMPATIBLE_PART_COUNT_ERROR;
 
-    for( i = numOfParts-1; i >= 0; i-- ) {
-        u128_part = (unsigned long *) uint128.data + i;
-        *u128_part = (unsigned long) parts[i] ^ 0UL;
+    for( i = 0; i < numOfParts; i++ ) {
+        /*u128_part = (unsigned long *) uint128.data + i;*/
+        /**u128_part = (unsigned long) parts[i];*/
+        *((unsigned long *) uint128.data+i) = parts[i];
     }
 
     return EXIT_SUCCESS;
@@ -198,17 +199,8 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
             doubleDecimal(binary[i]);
     }
 
-    fprintf(stderr, "BINARY:\n");
-    for( i = 0; i < NUM_OF_BITS; i++ ) {
-        fprintf(stderr, "\t%i: %s\n", i, binary[i]);
-    }
-
-    for( i = 1; i < NUM_OF_BITS; i++ ) {
+    for( i = 1; i < NUM_OF_BITS; i++ )
         addDecimalBits(binary[0], binary[i]);
-        for( j = 0; j < NUM_OF_BITS; j++ )
-            fprintf(stderr, "\t%s\n", binary[j]);
-        fprintf(stderr, "\n\n");
-    }
 
     for( i = 0; i < SIZE_OF_DECIMAL_STRING; i++ ) {
         dest[i] = binary[0][i];
