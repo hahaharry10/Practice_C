@@ -178,24 +178,30 @@ void testUint128DecimalOutput(void) {
     FREE_UINT128(uint128);
 }
 
-void testAddition(void) {
-    int i, j, numOfTests, numOfSubTests;
+void testLongAddition(void) {
+    unsigned long **parts;
+    char *decimalOutput;
+    unsigned long *op2;
+    int numOfTests, i;
     uint128_t uint128;
-    char* decimalOutput;
-    char*** expectedOutput;
-    unsigned long *parts;
 
-    numOfTests = 5;
-    numOfSubTests = 4;
+    numOfTests = 2;
 
-    decimalOutput = (char *) malloc(SIZE_OF_DECIMAL_STRING);
-    expectedOutput = (char ***) calloc(numOfTests, sizeof(char **));
-    parts = (unsigned long *) calloc(NUM_OF_PARTS, sizeof(unsigned long));
-    for( i = 0; i < numOfTests; i++ ) {
-        expectedOutput[i] = (char **) malloc(SIZE_OF_DECIMAL_STRING);
-        for( j = 0; j < numOfSubTests; j++ )
-            expectedOutput[i][j] = (char *) malloc(SIZE_OF_DECIMAL_STRING);
+    op2 = calloc(numOfTests, sizeof(unsigned long));
+    parts = calloc(numOfTests, sizeof(unsigned long *));
+    for( i = 0; i < NUM_OF_PARTS; i++ )
+        parts[i] = calloc(NUM_OF_PARTS, sizeof(unsigned long));
+
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
+        parts[0][i] = 0x0UL - (i == (NUM_OF_PARTS-1));
+
+        parts[1][i] = 0x0UL - (i == (NUM_OF_PARTS-1));
     }
+
+    op2[0] = 0x01UL;
+    op2[1] = 0x0UL - 1;
+
+    decimalOutput = malloc(SIZE_OF_DECIMAL_STRING);
 
     uint128 = CREATE_UINT128();
 
@@ -206,27 +212,20 @@ void testAddition(void) {
      *      - Test recursive overflow (overflows that cause overflows in other parts).
      *      - Test complete overflow (overflow in most significant part).
      */
-    parts[0] = 0x0UL;
-    parts[1] = 0x01UL;
-    WRITE_TO_UINT128(uint128, parts, 2);
-    for( i = 0; i < 0x0UL-1; i++ ) {
-        for( j = 0; j < 2; j++ ) {
-            UINT128_ADD_LONG(&uint128, parts[j]);
-        }
-    }
-
-    PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
-    printf("Final Number: %s\n", decimalOutput);
 
     for( i = 0; i < numOfTests; i++ ) {
-        for( j = 0; j < numOfSubTests; j++ )
-            free(expectedOutput[i][j]);
-        free(expectedOutput[i]);
+        printf("Test %i:\n", i);
+        WRITE_TO_UINT128(uint128, parts[i], 2);
+        PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+        printf("\t%s + %lu = ", decimalOutput, op2[i]);
+        UINT128_ADD_LONG(&uint128, op2[i]);
+        PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
+        printf("%s\n\n", decimalOutput);
     }
-    free(expectedOutput);
-    free(decimalOutput);
-    free(parts);
 
+    for( i = 0; i < NUM_OF_PARTS; i++ )
+        free(parts[i]);
+    free(parts);
 }
 
 void printHeader(char* title) {
@@ -265,7 +264,6 @@ int main(int argc, char** argv) {
 
     printf("Uint128 created with:\n");
     printf("\tbyte endianness: %s\n", ( uint128.byte_endianness ? "LITTLE" : "BIG" ));
-    printf("\tbit  endianness: %s\n", ( uint128.bit_endianness ? "LITTLE" : "BIG" ));
     printf("\n");
     printf("uint128 is created. Data given address: %p\n", (void *) uint128.data);
     for( i = 0; i < 128 / 8; i++ )
@@ -274,8 +272,8 @@ int main(int argc, char** argv) {
     printHeader("TESTING UINT128 PRINT METHOD\0");
     testUint128DecimalOutput();
 
-    /*printHeader("TESTING UINT128 ADDITION\0");*/
-    /*testAddition();*/
+    printHeader("TESTING UINT128 ADDITION\0");
+    testLongAddition();
 
     printf("Freeing Struct...\n");
     FREE_UINT128(uint128);
