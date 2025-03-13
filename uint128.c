@@ -3,10 +3,9 @@
 uint128_t CREATE_UINT128(void) {
     uint128_t uint128;
     int n;
-    uint128.data = ((unsigned long *) malloc(NUM_OF_PARTS * sizeof(unsigned long))) + ( (NUM_OF_PARTS - 1) * sizeof(unsigned int) );
+    uint128.data = (unsigned long *) malloc(16);
     n = 1;
     uint128.byte_endianness = (int) *((char *) &n); /* BIG = 0, LITTLE = 1 */
-    uint128.bit_endianness = (int) (0x01 >> 7);
     return uint128;
 }
 
@@ -216,7 +215,7 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
 }
 
 void FREE_UINT128(uint128_t data) {
-    free(data.data - ( (NUM_OF_PARTS - 1) * sizeof(unsigned int) ));
+    free(data.data);
 }
 
 int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
@@ -224,12 +223,10 @@ int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
         return 1;
     }
 
-    if( (uint128->data[0] += value) < value ) {
-        int i;
-        for( i = 1; i < NUM_OF_PARTS; i++ ) {
-            if( (++uint128->data[i]) != 0 )
-                break;
-        }
+    if( (uint128->data[NUM_OF_PARTS-1] += value) < value ) {
+        int i = 0;
+        while( ++uint128->data[i++] == 0 ) (void) 0;
+        return OVERFLOW_OPERATION;
     }
 
     return 0;
@@ -237,20 +234,20 @@ int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
 
 /* Performs the equivalent of `u1 = u1 + u2` (u2 is left untouched) */
 int UINT128_ADD_UINT128( uint128_t* u1, uint128_t* u2 ) {
+    int i, j;
+
     if( u1->data == NULL || u2->data == NULL ) {
         return 1;
-    } else {
-        int i, j;
+    }
 
-        for( i = 0; i < NUM_OF_PARTS; i++ ) {
-            if( (u1->data[i] += u2->data[i]) < u2->data[i] ) {
-                for( j = i+1; j < NUM_OF_PARTS; j++ ) {
-                    if( (++u1->data[j]) != 0 )
-                        break;
-                }
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
+        if( (u1->data[i] += u2->data[i]) < u2->data[i] ) {
+            for( j = i+1; j < NUM_OF_PARTS; j++ ) {
+                if( (++u1->data[j]) != 0 )
+                    break;
             }
         }
-        
-        return 0;
     }
+
+    return 0;
 }

@@ -11,6 +11,8 @@
 #define SYSTEM_BIG_ENDIAN 0
 #define SYSTEM_LITTLE_ENDIAN 1
 
+#define OVERFLOW_OPERATION 3
+
 /* define how many unsigned long integers are needed to create 128 bit integer */
 #define NUM_OF_PARTS 16/sizeof(unsigned long)
 
@@ -20,7 +22,6 @@
 typedef struct {
 	unsigned long* data;
 	int byte_endianness;
-	int bit_endianness;
 } uint128_t;
 
 uint128_t CREATE_UINT128(void);
