@@ -54,10 +54,10 @@ int checkStringsAreIdentical(char* str1, char* str2) {
     return 1;
 }
 
-void testDiffEndianness(uint128_t uint128, char** expectedOutput, char* decimalOutput) {
+void testDiffEndianness(uint128_t *uint128, char** expectedOutput, char* decimalOutput) {
     int i;
 
-    uint128.byte_endianness = SYSTEM_LITTLE_ENDIAN;
+    uint128->byte_endianness = SYSTEM_LITTLE_ENDIAN;
     printf("\tByte=LITTLE\n");
     printf("\t\tExpected Output:\t%s\n", expectedOutput[0]);
     PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
@@ -65,7 +65,7 @@ void testDiffEndianness(uint128_t uint128, char** expectedOutput, char* decimalO
     if( !checkStringsAreIdentical(expectedOutput[0], decimalOutput) )
         printf("\033[0;31mFAILED\033[0m\n");
 
-    uint128.byte_endianness = SYSTEM_BIG_ENDIAN;
+    uint128->byte_endianness = SYSTEM_BIG_ENDIAN;
     printf("\tByte=BIG\n");
     printf("\t\tExpected Output:\t%s\n", expectedOutput[1]);
     PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
@@ -77,7 +77,7 @@ void testDiffEndianness(uint128_t uint128, char** expectedOutput, char* decimalO
 
 void testUint128DecimalOutput(void) {
     int i, j, numOfTests, numOfSubTests;
-    uint128_t uint128;
+    uint128_t *uint128;
     char* decimalOutput;
     char*** expectedOutput;
     unsigned long **parts;
@@ -156,7 +156,7 @@ void testUint128DecimalOutput(void) {
     _strcpy(expectedOutput[6][0], "46417581709420436355110454462853268110\0", 39);
     _strcpy(expectedOutput[6][1], "53980667881542556330518465821379741865\0", 39);
 
-    uint128 = CREATE_UINT128();
+    CREATE_UINT128(&uint128);
 
     /* Iterate through tests: */
     for( i = 0; i < numOfTests; i++ ) {
@@ -183,7 +183,7 @@ void testLongAddition(void) {
     char *decimalOutput;
     unsigned long *op2;
     int numOfTests, i;
-    uint128_t uint128;
+    uint128_t *uint128;
 
     numOfTests = 2;
 
@@ -203,7 +203,7 @@ void testLongAddition(void) {
 
     decimalOutput = malloc(SIZE_OF_DECIMAL_STRING);
 
-    uint128 = CREATE_UINT128();
+    CREATE_UINT128(&uint128);
 
     /*
      * TODO:
@@ -252,7 +252,7 @@ void printHeader(char* title) {
 }
 
 int main(int argc, char** argv) {
-    uint128_t uint128;
+    uint128_t *uint128;
     unsigned long parts[NUM_OF_PARTS], outputPart;
     int i;
 
@@ -260,14 +260,14 @@ int main(int argc, char** argv) {
         parts[i] = (unsigned long) (i*2) + 1;
 
     /* Test creation of 128 bit unsigned int */
-    uint128 = CREATE_UINT128();
+    CREATE_UINT128(&uint128);
 
     printf("Uint128 created with:\n");
-    printf("\tbyte endianness: %s\n", ( uint128.byte_endianness ? "LITTLE" : "BIG" ));
+    printf("\tbyte endianness: %s\n", ( uint128->byte_endianness ? "LITTLE" : "BIG" ));
     printf("\n");
-    printf("uint128 is created. Data given address: %p\n", (void *) uint128.data);
+    printf("uint128 is created. Data given address: %p\n", (void *) uint128->data);
     for( i = 0; i < 128 / 8; i++ )
-        printf("\tByte %i: %p\n", i, (void *) ((char *) uint128.data + i));
+        printf("\tByte %i: %p\n", i, (void *) ((char *) uint128->data + i));
 
     printHeader("TESTING UINT128 PRINT METHOD\0");
     testUint128DecimalOutput();

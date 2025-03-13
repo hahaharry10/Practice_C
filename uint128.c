@@ -1,30 +1,33 @@
 #include "uint128.h"
 
-uint128_t CREATE_UINT128(void) {
-    uint128_t uint128;
+int CREATE_UINT128(uint128_t **uint128) {
     int n;
-    uint128.data = (unsigned long *) malloc(16);
+    *uint128 = malloc(sizeof(uint128_t));
+    if( !*uint128 )
+        return 1;
+
+    (*uint128)->data = (unsigned long *) malloc(16);
+    if( !(*uint128)->data )
+        return 1;
+
     n = 1;
-    uint128.byte_endianness = (int) *((char *) &n); /* BIG = 0, LITTLE = 1 */
-    return uint128;
+    (*uint128)->byte_endianness = (int) *((char *) &n); /* BIG = 0, LITTLE = 1 */
+    return 0;
 }
 
 /* Writes to the uin128 in big endianne format:
  *      parts[0]: contains most significant bit.
  *      parts[numOfParts-1]: contains least significant bit.
  */
-int WRITE_TO_UINT128(uint128_t uint128, unsigned long* parts, int numOfParts) {
+int WRITE_TO_UINT128(uint128_t *uint128, unsigned long* parts, int numOfParts) {
     int i;
     unsigned long* u128_part;
 
     if( numOfParts != NUM_OF_PARTS )
         return INCOMPATIBLE_PART_COUNT_ERROR;
 
-    for( i = 0; i < numOfParts; i++ ) {
-        /*u128_part = (unsigned long *) uint128.data + i;*/
-        /**u128_part = (unsigned long) parts[i];*/
-        *((unsigned long *) uint128.data+i) = parts[i];
-    }
+    for( i = 0; i < numOfParts; i++ )
+        *((unsigned long *) uint128->data+i) = parts[i];
 
     return EXIT_SUCCESS;
 }
@@ -137,18 +140,18 @@ static void addDecimalBits(char* bit1, char* bit2) {
  * Convert the bits stored in the 128bit integer into an array of bits represented as strings. 
  * The Bits are stored in a bit string in big endian format.
  */
-static void getBits(uint128_t uint128, char** bitString) {
+static void getBits(uint128_t *uint128, char** bitString) {
     int B, b, p, count; /* [B]yte, [b]it, [p]art, count */
     char byte;
     char strByte[2] = "0\0";
 
     count = 0;
-    if( uint128.byte_endianness == SYSTEM_LITTLE_ENDIAN ) {
+    if( uint128->byte_endianness == SYSTEM_LITTLE_ENDIAN ) {
         for( p = 0; p < NUM_OF_PARTS; p++ ) {
             /* Little Endian: LSB is first */
             for( B = sizeof(unsigned long)-1; B >= 0; B-- ) {
                 for( b = 7; b >= 0; b-- ) {
-                    byte = *( (char *) (uint128.data + p) + B );
+                    byte = *( (char *) (uint128->data + p) + B );
                     strByte[0] = '0' + ( (byte >> b) & 0x01 );
                     _strcpy(bitString[count], strByte, 2);
                     count++;
@@ -160,7 +163,7 @@ static void getBits(uint128_t uint128, char** bitString) {
             /* Big Endian: MSB is first */
             for( B = 0; B < sizeof(unsigned long); B++ ) {
                 for( b = 7; b >= 0; b-- ) {
-                    byte = *( (char *) (uint128.data + p) + B );
+                    byte = *( (char *) (uint128->data + p) + B );
                     strByte[0] = '0' + ( (byte >> b) & 0x01 );
                     _strcpy(bitString[count], strByte, 2);
                     count++;
@@ -181,7 +184,7 @@ static void reverse_string(char *str, int len) {
     }
 }
 
-void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
+void PRINT_UINT128_AS_DECIMAL(uint128_t *uint128, char* dest) {
     int i, j, offset;
     char** binary;
     binary = (char **) calloc(NUM_OF_BITS, sizeof(char*));
@@ -214,11 +217,13 @@ void PRINT_UINT128_AS_DECIMAL(uint128_t uint128, char* dest) {
     free(binary);
 }
 
-void FREE_UINT128(uint128_t data) {
-    free(data.data);
+void FREE_UINT128(uint128_t *data) {
+    free(data->data);
+    free(data);
+    data = NULL;
 }
 
-int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
+int UINT128_ADD_LONG(uint128_t *uint128, unsigned long value) {
     if( uint128->data == NULL ) {
         return 1;
     }
@@ -233,7 +238,7 @@ int UINT128_ADD_LONG( uint128_t* uint128, unsigned long value ) {
 }
 
 /* Performs the equivalent of `u1 = u1 + u2` (u2 is left untouched) */
-int UINT128_ADD_UINT128( uint128_t* u1, uint128_t* u2 ) {
+int UINT128_ADD_UINT128(uint128_t *u1, uint128_t *u2) {
     int i, j;
 
     if( u1->data == NULL || u2->data == NULL ) {
