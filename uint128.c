@@ -229,8 +229,8 @@ int UINT128_ADD_LONG(uint128_t *uint128, unsigned long value) {
     }
 
     if( (uint128->data[NUM_OF_PARTS-1] += value) < value ) {
-        int i = 0;
-        while( ++uint128->data[i++] == 0 ) (void) 0;
+        int i = NUM_OF_PARTS-2;
+        while( (uint128->data[i--] += 1) == 0 ) (void) 0;
         return OVERFLOW_OPERATION;
     }
 

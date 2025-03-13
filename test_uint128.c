@@ -127,7 +127,7 @@ void testUint128DecimalOutput(void) {
      *      sub Test:   Byte Endianness:
      *          1           LITTLE      
      *          2            BIG        
-     * Tests:
+     * TEST:
      *      Test Num:   Input:
      *          0           All 1's
      *          1           All 0's
@@ -185,21 +185,30 @@ void testLongAddition(void) {
     int numOfTests, i;
     uint128_t *uint128;
 
-    numOfTests = 2;
+    numOfTests = 3;
 
     op2 = calloc(numOfTests, sizeof(unsigned long));
     parts = calloc(numOfTests, sizeof(unsigned long *));
-    for( i = 0; i < NUM_OF_PARTS; i++ )
+    for( i = 0; i < numOfTests; i++ )
         parts[i] = calloc(NUM_OF_PARTS, sizeof(unsigned long));
 
+    /*
+     * TEST:
+     *      0       All but the first part assigned 0x0UL-1. Added to 1.
+     *      1       All but the first part assigned 0x0UL-1. Added to 0x0UL-1.
+     *      2       All parts assigned 0x0UL-1. Added to 1.
+     */
     for( i = 0; i < NUM_OF_PARTS; i++ ) {
-        parts[0][i] = 0x0UL - (i == (NUM_OF_PARTS-1));
+        parts[0][i] = 0x0UL - (i != 0);
 
         parts[1][i] = 0x0UL - (i == (NUM_OF_PARTS-1));
+
+        parts[2][i] = 0x0UL-1;
     }
 
     op2[0] = 0x01UL;
     op2[1] = 0x0UL - 1;
+    op2[2] = 0x01UL;
 
     decimalOutput = malloc(SIZE_OF_DECIMAL_STRING);
 
@@ -218,7 +227,7 @@ void testLongAddition(void) {
         WRITE_TO_UINT128(uint128, parts[i], 2);
         PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
         printf("\t%s + %lu = ", decimalOutput, op2[i]);
-        UINT128_ADD_LONG(&uint128, op2[i]);
+        UINT128_ADD_LONG(uint128, op2[i]);
         PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
         printf("%s\n\n", decimalOutput);
     }
