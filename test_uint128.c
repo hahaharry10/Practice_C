@@ -123,11 +123,14 @@ void testUint128DecimalOutput(void) {
         *(((char *) parts[6]) + i) = test6Parts[i];
     }
 
-    /* Order of Tests:
-     *      sub Test:   Byte Endianness:
-     *          1           LITTLE      
-     *          2            BIG        
+
+    /*
      * TEST:
+     *      Order of Tests:
+     *          sub Test:   Byte Endianness:
+     *              1           LITTLE      
+     *              2            BIG        
+     *      
      *      Test Num:   Input:
      *          0           All 1's
      *          1           All 0's
@@ -180,7 +183,7 @@ void testUint128DecimalOutput(void) {
 
 void testLongAddition(void) {
     unsigned long **parts;
-    char *decimalOutput;
+    char *decimalOutput, **expectedOutput;
     unsigned long *op2;
     int numOfTests, i;
     uint128_t *uint128;
@@ -189,8 +192,11 @@ void testLongAddition(void) {
 
     op2 = calloc(numOfTests, sizeof(unsigned long));
     parts = calloc(numOfTests, sizeof(unsigned long *));
-    for( i = 0; i < numOfTests; i++ )
+    expectedOutput = calloc(numOfTests, sizeof(char *));
+    for( i = 0; i < numOfTests; i++ ) {
         parts[i] = calloc(NUM_OF_PARTS, sizeof(unsigned long));
+        expectedOutput[i] = malloc(SIZE_OF_DECIMAL_STRING);
+    }
 
     /*
      * TEST:
@@ -209,6 +215,25 @@ void testLongAddition(void) {
     op2[0] = 0x01UL;
     op2[1] = 0x0UL - 1;
     op2[2] = 0x01UL;
+
+    /*
+     * NOTE: Test result differs depending on number of parts.
+     */
+    if( NUM_OF_PARTS == 2 ) {
+        _strcpy(expectedOutput[0], "18446744073709551616\0", 21);
+        _strcpy(expectedOutput[1], "36893488147419103230\0", 40);
+        _strcpy(expectedOutput[2], "0\0", 2);
+    } else {
+        fprintf(stderr, "ERROR: Test only supports 64bit architecture (for now).\n");
+        for( i = 0; i < NUM_OF_PARTS; i++ ) {
+            free(parts[i]);
+            free(expectedOutput[i]);
+        }
+        free(parts);
+        free(expectedOutput);
+        free(op2);
+        exit(1);
+    }
 
     decimalOutput = malloc(SIZE_OF_DECIMAL_STRING);
 
@@ -229,12 +254,19 @@ void testLongAddition(void) {
         printf("\t%s + %lu = ", decimalOutput, op2[i]);
         UINT128_ADD_LONG(uint128, op2[i]);
         PRINT_UINT128_AS_DECIMAL(uint128, decimalOutput);
-        printf("%s\n\n", decimalOutput);
+        printf("%s\n", decimalOutput);
+        if( !checkStringsAreIdentical(decimalOutput, expectedOutput[i]) )
+            printf("\033[0;31mFAILED\033[0m\n");
+        printf("\n");
     }
 
-    for( i = 0; i < NUM_OF_PARTS; i++ )
+    for( i = 0; i < NUM_OF_PARTS; i++ ) {
         free(parts[i]);
+        free(expectedOutput[i]);
+    }
     free(parts);
+    free(expectedOutput);
+    free(op2);
 }
 
 void printHeader(char* title) {
