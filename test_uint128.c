@@ -128,8 +128,8 @@ void testUint128DecimalOutput(void) {
      * TEST:
      *      Order of Tests:
      *          sub Test:   Byte Endianness:
-     *              1           LITTLE      
-     *              2            BIG        
+     *              1           LITTLE
+     *              2            BIG
      *      
      *      Test Num:   Input:
      *          0           All 1's
