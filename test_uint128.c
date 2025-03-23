@@ -188,7 +188,7 @@ void testLongAddition(void) {
     int numOfTests, i;
     uint128_t *uint128;
 
-    numOfTests = 3;
+    numOfTests = 5;
 
     op2 = calloc(numOfTests, sizeof(unsigned long));
     parts = calloc(numOfTests, sizeof(unsigned long *));
@@ -210,19 +210,27 @@ void testLongAddition(void) {
         parts[1][i] = 0x0UL - (i == (NUM_OF_PARTS-1));
 
         parts[2][i] = 0x0UL-1;
+
+        parts[3][i] = 0x0UL;
+
+        parts[4][i] = 0x0UL-1;
     }
 
     op2[0] = 0x01UL;
     op2[1] = 0x0UL - 1;
     op2[2] = 0x01UL;
+    op2[3] = 0x0UL - 1;
+    op2[4] = 0x0UL;
 
     /*
      * NOTE: Test result differs depending on number of parts.
      */
     if( NUM_OF_PARTS == 2 ) {
         _strcpy(expectedOutput[0], "18446744073709551616\0", 21);
-        _strcpy(expectedOutput[1], "36893488147419103230\0", 40);
+        _strcpy(expectedOutput[1], "36893488147419103230\0", 21);
         _strcpy(expectedOutput[2], "0\0", 2);
+        _strcpy(expectedOutput[3], "18446744073709551615\0", 21);
+        _strcpy(expectedOutput[4], "340282366920938463463374607431768211455\0", 40);
     } else {
         fprintf(stderr, "ERROR: Test only supports 64bit architecture (for now).\n");
         for( i = 0; i < NUM_OF_PARTS; i++ ) {
